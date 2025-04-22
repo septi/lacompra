@@ -20,8 +20,7 @@ export async function POST(request: NextRequest) {
         const cleanItem: ListItem = {
             id: itemData.id,
             nombre: itemData.nombre,
-            cantidad: itemData.cantidad,
-            comprado: !!itemData.comprado // Asegurar que sea booleano
+            cantidad: itemData.cantidad
         };
         
         // Convertir a JSON para almacenar en Redis
