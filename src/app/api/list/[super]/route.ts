@@ -126,16 +126,12 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ message: 'Lista reordenada correctamente' });
     }
 
-    // Option 2: Updating a single item's properties (cantidad, comprado)
-    if (payload.itemId && (payload.cantidad !== undefined || payload.comprado !== undefined)) {
-      const { itemId, cantidad, comprado } = payload;
+    // Option 2: Updating a single item's properties (cantidad)
+    if (payload.itemId && payload.cantidad !== undefined) {
+      const { itemId, cantidad } = payload;
 
-      if (cantidad !== undefined && (typeof cantidad !== 'number' || !Number.isInteger(cantidad) || cantidad < 1)) {
+      if (typeof cantidad !== 'number' || !Number.isInteger(cantidad) || cantidad < 1) {
          return NextResponse.json({ error: 'Invalid item quantity' }, { status: 400 });
-      }
-      // Field name is comprado now
-      if (comprado !== undefined && typeof comprado !== 'boolean') {
-         return NextResponse.json({ error: 'Invalid comprado status' }, { status: 400 });
       }
 
       // Ahora getList siempre devuelve un array (vacío en caso de error)
@@ -153,18 +149,12 @@ export async function PATCH(request: NextRequest) {
           const updatedItem: ListItem = {
             id: item.id,
             nombre: item.nombre,
-            cantidad: cantidad !== undefined ? cantidad : item.cantidad,
-            comprado: comprado !== undefined ? comprado : item.comprado
+            cantidad: cantidad
           };
           return updatedItem;
         }
         // Asegurar que todos los elementos sean objetos limpios
-        return {
-          id: item.id,
-          nombre: item.nombre,
-          cantidad: item.cantidad,
-          comprado: !!item.comprado // Asegurar que sea booleano
-        };
+        return item;
       });
 
       if (!itemFound) {
@@ -227,8 +217,7 @@ export async function DELETE(request: NextRequest) {
       .map(item => ({
         id: item.id,
         nombre: item.nombre,
-        cantidad: item.cantidad,
-        comprado: !!item.comprado // Asegurar que sea booleano
+        cantidad: item.cantidad
       }));
 
     // If the list length hasn't changed, the item wasn't found
