@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       id: uuidv4(), // Generate a unique ID
       nombre: String(nombre), // Asegurar que sea string
       cantidad: Number(cantidad), // Asegurar que sea número
-      comprado: false, // New items are not done by default
+
     };
 
     // Use the new addItem function

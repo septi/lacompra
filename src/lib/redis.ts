@@ -2,6 +2,7 @@ import { Redis } from '@upstash/redis';
 
 // Define the structure of list items
 export interface ListItem {
+
   id: string;
   nombre: string;
   cantidad: number;
@@ -236,7 +237,8 @@ export async function addItem(superSlug: string, item: ListItem): Promise<boolea
     const cleanItem: ListItem = {
       id: String(item.id),
       nombre: String(item.nombre),
-      cantidad: Number(item.cantidad || 1)
+      cantidad: Number(item.cantidad || 1),
+
     };
     
     // Serializar correctamente a JSON
@@ -291,7 +293,8 @@ export async function updateItemByIndex(superSlug: string, index: number, item: 
         const cleanItem: ListItem = {
             id: String(item.id),
             nombre: String(item.nombre),
-            cantidad: Number(item.cantidad || 1)
+            cantidad: Number(item.cantidad || 1),
+
         };
         
         // Serializar correctamente a JSON
@@ -327,7 +330,8 @@ export async function replaceList(superSlug: string, items: ListItem[]): Promise
         const cleanItems = items.map(item => ({
             id: String(item.id),
             nombre: String(item.nombre),
-            cantidad: Number(item.cantidad || 1)
+            cantidad: Number(item.cantidad || 1),
+
         }));
         
         // Serializar correctamente a JSON
