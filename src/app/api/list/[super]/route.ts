@@ -3,10 +3,11 @@ import { v4 as uuidv4 } from 'uuid'; // For generating item IDs
 import { revalidatePath } from 'next/cache'; // Import for cache invalidation
 import {
   getList,
-  addItem,       // Use addItem
-  replaceList,   // Use replaceList for updates/deletes/reorders
+  addItem,
+  replaceList,
   ListItem,
 } from '@/lib/redis';
+import { backupItems } from '@/data/items';
 
 // Helper function to extract supermarket slug from URL
 function extractSuperSlugFromURL(url: string): string {
@@ -45,8 +46,15 @@ export async function GET(request: NextRequest) {
     // Ahora getList siempre devuelve un array (vacío en caso de error)
     const list = await getList(superSlug); // Pass slug directly
     
-    // Devolver la lista (que podría estar vacía)
-    return NextResponse.json(list);
+    console.log('API GET /api/list/', superSlug, '-> raw list:', list);
+    // Merge with backupItems to ensure seccion
+    const merged = list.map(item => {
+      const section = item.seccion || backupItems.find(b => b.item === item.nombre)?.seccion || '';
+      return { ...item, seccion: section };
+    });
+    console.log('API GET /api/list/ merged with sections:', merged);
+    return NextResponse.json(merged);
+
   } catch (error) {
     // Log error with generic message
     console.error(`GET /api/list/ error:`, error);
@@ -61,7 +69,7 @@ export async function POST(request: NextRequest) {
     const superSlug = extractSuperSlugFromURL(request.url);
     
     // Get request body
-    const { nombre, cantidad = 1 } = await request.json();
+    const { nombre, cantidad = 1, seccion = '' } = await request.json();
     
     // Check for superSlug presence
     if (!superSlug) {
@@ -81,7 +89,8 @@ export async function POST(request: NextRequest) {
       id: uuidv4(), // Generate a unique ID
       nombre: String(nombre), // Asegurar que sea string
       cantidad: Number(cantidad), // Asegurar que sea número
-
+      comprado: false, // default comprado flag
+      seccion: String(seccion) // sección proveniente del cliente
     };
 
     // Use the new addItem function
@@ -108,6 +117,7 @@ export async function PATCH(request: NextRequest) {
     
     // Get request body
     const payload = await request.json();
+    console.log(`PATCH payload for ${superSlug}:`, payload);
     
     // Check for superSlug presence
     if (!superSlug) {
@@ -172,10 +182,32 @@ export async function PATCH(request: NextRequest) {
       const returnedItem = updatedList.find(item => item.id === itemId);
       return NextResponse.json(returnedItem);
 
-    } else {
-      // Invalid PATCH payload
-      return NextResponse.json({ error: 'Invalid payload for PATCH request' }, { status: 400 });
+    } 
+    // Option 3: Updating the 'comprado' flag
+    if (payload.itemId && payload.comprado !== undefined) {
+      const { itemId, comprado } = payload;
+      const currentList = await getList(superSlug);
+      let itemFound = false;
+      const updatedList = currentList.map(item => {
+        if (item.id === itemId) {
+          itemFound = true;
+          return { ...item, comprado: Boolean(comprado) };
+        }
+        return item;
+      });
+      if (!itemFound) {
+        return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+      }
+      const successComprado = await replaceList(superSlug, updatedList);
+      if (!successComprado) {
+        return NextResponse.json({ error: 'Failed to update comprado flag' }, { status: 500 });
+      }
+      revalidatePath(`/super/${superSlug}`);
+      const returnedComprado = updatedList.find(item => item.id === itemId);
+      return NextResponse.json(returnedComprado);
     }
+    // Invalid PATCH payload
+    return NextResponse.json({ error: 'Invalid payload for PATCH request' }, { status: 400 });
 
   } catch (error) {
     console.error(`PATCH /api/list/ error:`, error);

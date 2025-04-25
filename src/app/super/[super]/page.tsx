@@ -6,7 +6,10 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, 
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, arrayMove, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FIXED_SUPERS } from '@/data/constants';
-import { groceryItems } from '@/data/items';
+import { backupItems } from '@/data/items';
+
+// Lista de nombres para autocompletado
+const groceryItems: string[] = backupItems.map(b => b.item);
 
 // Definir colores para supermercados (clases de Tailwind)
 const superColors: { [key: string]: string } = {
@@ -53,6 +56,8 @@ interface ListItem {
     id: string;
     nombre: string;
     cantidad: number;
+    comprado?: boolean; // comprado flag, default false
+    seccion?: string;  // sección asignada
 }
 
 interface SortableItemProps {
@@ -61,11 +66,12 @@ interface SortableItemProps {
     onUpdateItem: (id: string, updates: { cantidad?: number }) => void;
     onDeleteItem: (id: string) => void;
     onMoveItem: (id: string, targetSuper: string) => void;
+    onToggleComprado: (id: string) => void;
     superSlug: string;
 }
 
 // Componente para cada elemento arrastrable
-function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, superSlug }: SortableItemProps) {
+function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onToggleComprado, superSlug }: SortableItemProps) {
     const {
         attributes,
         listeners,
@@ -81,7 +87,6 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, superS
 
     // Estado para controlar el menú de acciones
     const [showActions, setShowActions] = useState(false);
-    const [purchased, setPurchased] = useState(false);
     
     return (
         <li 
@@ -90,18 +95,18 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, superS
             className="flex items-center p-2 my-2 bg-white rounded-md shadow-md transition-all duration-200 relative"
         >
             {/* Checkbox */}
-            <input type="checkbox" checked={purchased} onChange={() => { setPurchased(true); setTimeout(() => onDeleteItem(id), 300); }} className="mr-2 w-5 h-5 rounded-md border-gray-300 text-green-500 focus:ring-0 shadow-inner" />
+            <input type="checkbox" checked={item.comprado} onChange={() => onToggleComprado(id)} className="mr-2 w-5 h-5 rounded-md border-gray-300 text-green-500 focus:ring-0 shadow-inner" />
 
             {/* Item Name - Ahora también es arrastrable */}
             <div 
-                className={`flex-grow truncate font-medium ${purchased ? 'line-through text-gray-400' : 'text-gray-800'}`}
+                className={`flex-grow truncate font-medium ${item.comprado ? 'line-through text-gray-400' : 'text-gray-800'}`}
                 style={{ maxWidth: 'calc(100% - 110px)' }}
             >
                 {item.nombre}
             </div>
 
             {/* Cantidad */}
-            <span className={`mx-2 px-2 font-bold rounded-full bg-gray-50 ${purchased ? 'line-through text-gray-400' : 'text-gray-700'}`}>{item.cantidad}</span>
+            <span className={`mx-2 px-2 font-bold rounded-full bg-gray-50 ${item.comprado ? 'line-through text-gray-400' : 'text-gray-700'}`}>{item.cantidad}</span>
 
             {/* Drag handle */}
             <div 
@@ -158,7 +163,7 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, superS
                             <div className="flex items-center justify-between">
                                 <span className="text-gray-700">Mover a:</span>
                                 <select 
-                                    className="ml-2 p-1 border-0 rounded-lg shadow-[0_2px_5px_rgb(0,0,0,0.08)] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    className="ml-2 p-1 border-0 rounded-lg shadow-[0_2px_5px_rgb(0,0,0,0.08),inset_0_0_0_1px_rgba(0,0,0,0.08)] focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     onChange={(e) => {
                                         if (e.target.value) {
                                             onMoveItem(item.id, e.target.value);
@@ -195,6 +200,7 @@ export default function SuperListPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [movingItemId, setMovingItemId] = useState<string | null>(null); // State for moving item
+    const [showPurchased, setShowPurchased] = useState(true);
     
     // Definir los sensores para drag and drop fuera del renderizado condicional
     const sensors = useSensors(
@@ -220,8 +226,22 @@ export default function SuperListPage() {
             if (!response.ok) {
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
-            const data = await response.json();
-            setList(data);
+            // Parse JSON as ListItem array
+            const data = (await response.json()) as ListItem[];
+            // Map items and include default values
+            const mapped: ListItem[] = data.map((i: ListItem) => ({ ...i, comprado: i.comprado ?? false, seccion: i.seccion ?? '' }));
+            // Agrupar y ordenar automáticamente: frutería, sin sección, congelados
+            const fruteria = mapped.filter((item: ListItem) => item.seccion === 'frutería');
+            const noneSection = mapped.filter((item: ListItem) => !item.seccion);
+            const congelados = mapped.filter((item: ListItem) => item.seccion === 'congelados');
+            const ordered = [...fruteria, ...noneSection, ...congelados];
+            setList(ordered);
+            // Persistir orden en backend
+            await fetch(`/api/list/${superSlug}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderedList: ordered }),
+            });
         } catch (err) {
             console.error('Error fetching list:', err);
             setError('Error al cargar la lista. Por favor, inténtalo de nuevo.');
@@ -273,79 +293,22 @@ export default function SuperListPage() {
     const addItem = async (nombre: string) => {
         setError(null);
         try {
+            // Determine section from backupItems
+            const seccion = backupItems.find(b => b.item === nombre)?.seccion ?? '';
             const response = await fetch(apiBaseUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre }),
+                body: JSON.stringify({ nombre, seccion }),
             });
             if (!response.ok) {
                 const errData = await response.json();
                 throw new Error(errData.error || 'Error al añadir artículo');
             }
-            const newItem = await response.json();
-            setList(prev => [...prev, newItem]);
+            // Refresh list to apply ordering and fetch actual sections
+            await fetchList();
             setNewItemName('');
         } catch (err: any) {
             setError(err.message || 'Error inesperado al añadir');
-        }
-    };
-
-    // Lógica de autocompletado
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setNewItemName(value);
-        if (value.length > 0) {
-            // Normalizar: quitar tildes y pasar a minúsculas
-            const normalize = (str: string) =>
-                str
-                    .normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, '')
-                    .toLowerCase();
-            const normalizedValue = normalize(value);
-            const filtered = groceryItems
-                .filter(item => normalize(item).startsWith(normalizedValue))
-                .slice(0, 8);
-            setSuggestions(filtered);
-            setShowSuggestions(filtered.length > 0);
-        } else {
-            setSuggestions([]);
-            setShowSuggestions(false);
-        }
-    };
-
-    const handleSuggestionClick = async (suggestion: string) => {
-        setNewItemName(suggestion);
-        setSuggestions([]);
-        setShowSuggestions(false);
-        inputRef.current?.focus();
-        await addItem(suggestion);
-    };
-
-    // Add item handler - Solo se llama cuando se pulsa el botón o se envía el formulario manualmente
-    const handleAddItem = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newItemName.trim()) return;
-        await addItem(newItemName.trim());
-    };
-
-
-    
-    // Handler para actualizar la cantidad de un ítem
-    const handleUpdateItem = async (id: string, updates: { cantidad?: number }) => {
-        const prevList = [...list];
-        setList(list => list.map(item => item.id === id ? { ...item, ...updates } : item));
-        try {
-            const response = await fetch(`/api/list/${superSlug}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ itemId: id, ...updates }),
-            });
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-        } catch (error) {
-            setList(prevList); // revertir
-            alert('No se pudo actualizar el artículo. Inténtalo de nuevo.');
         }
     };
 
@@ -460,6 +423,90 @@ const currentList = [...list];
         }
     }
 
+    // Handler to mark item as purchased
+    const handleToggleComprado = async (id: string) => {
+        const item = list.find(i => i.id === id);
+        if (!item) return;
+        const newComprado = !item.comprado;
+        // Optimistic update
+        setList(prev => prev.map(i => i.id === id ? { ...i, comprado: newComprado } : i));
+        try {
+            const response = await fetch(`/api/list/${superSlug}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId: id, comprado: newComprado }),
+            });
+            if (!response.ok) throw new Error(`Status ${response.status}`);
+        } catch (error) {
+            console.error('Error updating comprado:', error);
+            // Revert on failure
+            setList(prev => prev.map(i => i.id === id ? { ...i, comprado: item.comprado } : i));
+        }
+    };
+
+    // Autocomplete logic
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setNewItemName(value);
+        if (value.length > 0) {
+            const normalize = (str: string) =>
+                str.normalize('NFD').replace(/[ -]/g, '')?.toLowerCase() // remove diacritics
+                    .normalize('NFD').replace(/[ -]/g, '');
+            // actually diacritics removal
+            const normalized = value.normalize('NFD').replace(/[ -]/g, '').toLowerCase();
+            const filtered = groceryItems
+                .filter(item => item.normalize('NFD').replace(/[ -]/g, '').toLowerCase().startsWith(normalized))
+                .slice(0, 8);
+            setSuggestions(filtered);
+            setShowSuggestions(filtered.length > 0);
+        } else {
+            setSuggestions([]);
+            setShowSuggestions(false);
+        }
+    };
+
+    const handleSuggestionClick = async (suggestion: string) => {
+        setNewItemName(suggestion);
+        setSuggestions([]);
+        setShowSuggestions(false);
+        inputRef.current?.focus();
+        await addItem(suggestion);
+    };
+
+    const handleAddItem = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newItemName.trim()) return;
+        await addItem(newItemName.trim());
+    };
+
+    // Handler for updating item quantity
+    const handleUpdateItem = async (id: string, updates: { cantidad?: number }) => {
+        const prevList = [...list];
+        setList(list => list.map(item => item.id === id ? { ...item, ...updates } : item));
+        try {
+            const response = await fetch(`/api/list/${superSlug}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId: id, ...updates }),
+            });
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+        } catch (error) {
+            setList(prevList);
+            alert('No se pudo actualizar el artículo. Inténtalo de nuevo.');
+        }
+    };
+
+    // derive unpurchased and purchased lists
+    const unpurchased = list.filter(item => !item.comprado);
+    const purchasedItems = list.filter(item => item.comprado);
+    // Agrupar sin comprar por sección
+    const fruteria = unpurchased.filter(item => item.seccion === 'frutería');
+    const noneSection = unpurchased.filter(item => !item.seccion);
+    const congelados = unpurchased.filter(item => item.seccion === 'congelados');
+    const orderedUnpurchased = [...fruteria, ...noneSection, ...congelados];
+
     // Render the list items
     const renderListItems = () => {
         if (isLoading) {
@@ -472,7 +519,7 @@ const currentList = [...list];
                     {error}
                     <button 
                         onClick={fetchList}
-                        className="block mx-auto mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
+                        className="block mx-auto mt-2 px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none"
                     >
                         Reintentar
                     </button>
@@ -490,17 +537,18 @@ const currentList = [...list];
         }
         
         return (
+            <>
             <DndContext 
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
             >
                 <SortableContext 
-                    items={list.map(item => item.id)}
+                    items={orderedUnpurchased.map(item => item.id)}
                     strategy={verticalListSortingStrategy}
                 >
                     <ul className="space-y-3">
-                        {list.map((item) => (
+                        {orderedUnpurchased.map((item) => (
                             <SortableItem
                                 key={item.id}
                                 id={item.id}
@@ -508,12 +556,30 @@ const currentList = [...list];
                                 onUpdateItem={handleUpdateItem}
                                 onDeleteItem={handleDeleteItem}
                                 onMoveItem={handleMoveItem}
+                                onToggleComprado={handleToggleComprado}
                                 superSlug={superSlug}
                             />
                         ))}
                     </ul>
                 </SortableContext>
             </DndContext>
+            {purchasedItems.length > 0 && (
+                <details open={showPurchased} onToggle={e => setShowPurchased(e.currentTarget.open)} className="mt-6">
+                    <summary className="cursor-pointer font-semibold text-gray-800">Comprados ({purchasedItems.length})</summary>
+                    <ul className="mt-2 space-y-3">
+                        {purchasedItems.map(item => (
+                            <li key={item.id} className="flex items-center p-2 my-2 bg-white rounded-md shadow-md">
+                                <input type="checkbox" checked={item.comprado} onChange={() => handleToggleComprado(item.id)} className="mr-2 w-5 h-5 rounded-md border-gray-300 text-green-500 focus:ring-0 shadow-inner" />
+                                <div className="flex-grow truncate line-through text-gray-400" style={{ maxWidth: 'calc(100% - 60px)' }}>
+                                    {item.nombre}
+                                </div>
+                                <span className="mx-2 px-2 font-bold rounded-full bg-gray-50 line-through text-gray-400">{item.cantidad}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </details>
+            )}
+            </>
         );
     };
 
