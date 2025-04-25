@@ -2,10 +2,11 @@ import { Redis } from '@upstash/redis';
 
 // Define the structure of list items
 export interface ListItem {
-
   id: string;
   nombre: string;
   cantidad: number;
+  comprado?: boolean; // comprado flag
+  seccion?: string;  // sección asignada
 }
 
 // --- Redis Client Initialization ---
@@ -99,7 +100,9 @@ export async function cleanList(listName: string): Promise<boolean> {
                 validItems.push({
                     id: String(parsed.id),
                     nombre: String(parsed.nombre),
-                    cantidad: Number(parsed.cantidad || 1)
+                    cantidad: Number(parsed.cantidad || 1),
+                    comprado: parsed.comprado ?? false,
+                    seccion: parsed.seccion ?? ''
                 });
             } catch (error) {
                 // Ignorar elementos que no se pueden procesar
@@ -206,7 +209,9 @@ export async function getList(superSlug: string): Promise<ListItem[]> {
                 validItems.push({
                     id: String(parsedItem.id),
                     nombre: String(parsedItem.nombre),
-                    cantidad: Number(parsedItem.cantidad || 1)
+                    cantidad: Number(parsedItem.cantidad || 1),
+                    comprado: parsedItem.comprado ?? false,
+                    seccion: parsedItem.seccion ?? ''
                 });
                 console.log(`Added valid item to results: ${parsedItem.nombre}`);
                 
@@ -238,7 +243,8 @@ export async function addItem(superSlug: string, item: ListItem): Promise<boolea
       id: String(item.id),
       nombre: String(item.nombre),
       cantidad: Number(item.cantidad || 1),
-
+      comprado: item.comprado ?? false,
+      seccion: item.seccion ?? ''
     };
     
     // Serializar correctamente a JSON
@@ -294,7 +300,8 @@ export async function updateItemByIndex(superSlug: string, index: number, item: 
             id: String(item.id),
             nombre: String(item.nombre),
             cantidad: Number(item.cantidad || 1),
-
+            comprado: item.comprado ?? false,
+            seccion: item.seccion ?? ''
         };
         
         // Serializar correctamente a JSON
@@ -331,7 +338,8 @@ export async function replaceList(superSlug: string, items: ListItem[]): Promise
             id: String(item.id),
             nombre: String(item.nombre),
             cantidad: Number(item.cantidad || 1),
-
+            comprado: item.comprado ?? false,
+            seccion: item.seccion ?? ''
         }));
         
         // Serializar correctamente a JSON

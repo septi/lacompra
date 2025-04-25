@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useMemo } from 'react';
 import { FIXED_SUPERS } from '@/data/constants';
 import Link from 'next/link';
@@ -17,6 +19,7 @@ interface ListItem {
   id: string;
   nombre: string;
   cantidad: number;
+  seccion?: string; // Sección asignada
 }
 
 // Tipo para los elementos con información del supermercado
@@ -183,58 +186,63 @@ export default function AllItemsList() {
     );
   }
 
-
-  
   return (
-    <div className="mt-8 mb-4">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center drop-shadow-sm">Todos los Artículos</h2>
-      
-      {allItems.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <p className="text-gray-600 text-lg">No hay elementos en ninguna lista</p>
-          <p className="text-gray-500 mt-2">Añade artículos a tus listas para verlos aquí.</p>
-        </div>
-      ) : (
-        <div className="max-w-xl mx-auto">
-          {groupedItems.map(([key, items]) => {
-            // Determinar si es un supermercado fijo o una tienda personalizada
-            const isTiendaPersonalizada = key.startsWith('otros-');
-            const superSlug = isTiendaPersonalizada ? 'otros' : key;
-            const tiendaName = isTiendaPersonalizada ? key.substring(6) : undefined;
-            const href = `/super/${superSlug}${tiendaName ? `-${tiendaName}` : ''}`;
-            
-            return (
-              <div key={key} className="mb-8 bg-white rounded-lg shadow-md p-4 transition-all duration-300 hover:shadow-lg">
-                {/* Encabezado del supermercado */}
-                <Link href={href} className="block mb-3">
-                  {renderSuperButton(superSlug, tiendaName)}
-                </Link>
-                
-                {/* Lista de elementos */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 mt-3">
-                  {items.map(item => (
-                    <Link 
-                      key={`${key}-${item.id}`} /* Clave compuesta para evitar duplicados */
-                      href={href}
-                      className="text-gray-800 hover:text-blue-600 p-3 rounded-lg hover:bg-blue-50 flex items-center justify-between transition-all duration-200 border border-transparent hover:border-blue-100"
-                    >
-                      <span className="font-medium">
-                        {item.nombre}
-                      </span>
-                      {/* Cantidad */}
-                      {item.cantidad > 1 && (
-                        <span className="text-gray-700 font-bold ml-2 bg-gray-100 px-2 py-1 rounded-full text-sm">
-                          ×{item.cantidad}
+    <>
+      <div className="mt-8 mb-4">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center drop-shadow-sm">Todos los Artículos</h2>
+ 
+        {allItems.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-md p-8 text-center">
+            <p className="text-gray-600 text-lg">No hay elementos en ninguna lista</p>
+            <p className="text-gray-500 mt-2">Añade artículos a tus listas para verlos aquí.</p>
+          </div>
+        ) : (
+          <div className="max-w-xl mx-auto">
+            {groupedItems.map(([key, items]) => {
+              // Determinar si es un supermercado fijo o una tienda personalizada
+              const isTiendaPersonalizada = key.startsWith('otros-');
+              const superSlug = isTiendaPersonalizada ? 'otros' : key;
+              const tiendaName = isTiendaPersonalizada ? key.substring(6) : undefined;
+              const href = `/super/${superSlug}${tiendaName ? `-${tiendaName}` : ''}`;
+              
+              return (
+                <div key={key} className="mb-8 bg-white rounded-lg shadow-md p-4 transition-all duration-300 hover:shadow-lg">
+                  {/* Encabezado del supermercado */}
+                  <Link href={href} className="block mb-3">
+                    {renderSuperButton(superSlug, tiendaName)}
+                  </Link>
+                  
+                  {/* Lista de elementos */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-3">
+                    {items.map(item => (
+                      <Link 
+                        key={`${key}-${item.id}`} /* Clave compuesta para evitar duplicados */
+                        href={href}
+                        className="text-gray-800 hover:text-blue-600 p-3 rounded-lg hover:bg-blue-50 flex items-center justify-between transition-all duration-200 border border-transparent hover:border-blue-100"
+                      >
+                        <span className="flex-1 font-medium truncate">
+                          {item.nombre}
                         </span>
-                      )}
-                    </Link>
-                  ))}
+                        {/* Cantidad */}
+                        {item.cantidad > 1 && (
+                          <span className="text-gray-700 font-bold ml-2 bg-gray-100 px-2 py-1 rounded-full text-sm">
+                            ×{item.cantidad}
+                          </span>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      <div className="flex justify-center mb-6">
+        <Link href="/editar-items" className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-md transition inline-block">
+          Edición predictivo
+        </Link>
+      </div>
+    </>
   );
 }
