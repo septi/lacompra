@@ -1,185 +1,103 @@
-# Proyecto LaCompra
+<proyecto_lacompra>
 
-<Características Técnicas>
-- **Framework:** Next.js 15
-- **UI Library:** React 18
-- **Styling:** Tailwind CSS 3
-- **Routing:** App Router
-- **Language:** TypeScript
-- **Linting:** ESLint (config next)
-- **Package Manager:** npm
-- **Alias de Importación:** `@/*` apunta a `./src/*`
-- **Almacenamiento:** Vercel KV (Upstash Redis)
-- **PWA:** Sí (configurado con `next-pwa`)
-- **Hosting:** Vercel
-- **Repositorio:** GitHub (pendiente de creación)
-</Características Técnicas>
+<caracteristicas_tecnicas>
+- Framework: Next.js 15
+- UI Library: React 18
+- Styling: Tailwind CSS 3
+- Routing: App Router
+- Language: TypeScript
+- Linting: ESLint (config next)
+- Package Manager: npm
+- Alias de Importación: @/* apunta a ./src/*
+- Almacenamiento: Vercel KV (Upstash Redis)
+- PWA: Sí (configurado con next-pwa)
+- Hosting: Vercel
+- Repositorio: GitHub (pendiente de creación)
+</caracteristicas_tecnicas>
 
-<Estructura del Proyecto>
-- **next.config.ts**: Configuración de Next.js.
-- **tsconfig.json**: Configuración de TypeScript.
-- **tailwind.config.ts**: Configuración de Tailwind CSS.
-- **package.json**: Dependencias y scripts (incluye @dnd-kit/core, @dnd-kit/sortable, next-pwa, tailwindcss).
-- **.eslintrc.json**: Configuración de ESLint.
-- **proyecto.md**: Documentación técnica y memoria del estado actual.
-- **src/**
-  - **app/**
-    - `layout.tsx`: Layout principal y metadata.
-    - `page.tsx`: Página de inicio.
-    - `globals.css`: Estilos globales.
-    - `super/[super]/page.tsx`: Página de lista de compras con drag & drop y autocompletado.
-    - `otros/page.tsx`: Gestión de tiendas adicionales.
-  - **app/api/list/[super]/route.ts**: API CRUD y reordenamiento de ítems.
-  - **app/api/list/clean/route.ts**: Ruta para limpieza de listas en Redis.
-  - **lib/redis.ts**: Helpers de interacción con Vercel KV (Upstash).
-  - **data/**
-    - `items.ts`: Listado de ítems fijos para autocompletado.
-    - `constants.ts`: Constantes (ej. FIXED_SUPERS).
-  - **components/**
-    - `AllItemsList.tsx`: Vista consolidada de todos los ítems.
-  </Estructura del Proyecto>
+<estructura_proyecto>
+- next.config.ts: Configuración de Next.js.
+- tsconfig.json: Configuración de TypeScript.
+- tailwind.config.ts: Configuración de Tailwind CSS.
+- package.json: Dependencias y scripts (incluye @dnd-kit/core, @dnd-kit/sortable, next-pwa, tailwindcss).
+- .eslintrc.json: Configuración de ESLint.
+- proyecto.md: Documentación técnica y memoria del estado actual.
+- src/
+  - app/
+    - layout.tsx: Layout principal y metadata.
+    - page.tsx: Página de inicio.
+    - globals.css: Estilos globales.
+    - super/[super]/page.tsx: Página de lista de compras con drag & drop y autocompletado.
+    - otros/page.tsx: Gestión de tiendas adicionales.
+  - app/api/list/[super]/route.ts: API CRUD y reordenamiento de ítems.
+  - app/api/list/clean/route.ts: Ruta para limpieza de listas en Redis.
+  - lib/redis.ts: Helpers de interacción con Vercel KV (Upstash).
+  - data/
+    - items.ts: Listado de ítems fijos para autocompletado.
+    - constants.ts: Constantes (ej. FIXED_SUPERS).
+  - components/
+    - AllItemsList.tsx: Vista consolidada de todos los ítems.
+</estructura_proyecto>
 
-<Consideraciones Técnicas Importantes>
-### Rutas API en Next.js 15
-- **Problema con Parámetros Dinámicos**: En Next.js 15, intentar acceder a `params.paramName` causa el error `params should be awaited before using its properties`.
-- **Solución implementada**: Extraer los parámetros directamente de la URL en lugar de usar el objeto `params`:
-  ```typescript
-  // Helper function to extract slug from URL
-  function extractSlugFromURL(url: string): string {
-    const urlParts = url.split('/');
-    return urlParts[urlParts.length - 1];
-  }
+<consideraciones_tecnicas_importantes>
+<rutas_api_nextjs_15>
+- Problema con Parámetros Dinámicos: En Next.js 15, intentar acceder a params.paramName causa el error params should be awaited before using its properties.
+- Solución implementada: Extraer los parámetros directamente de la URL en lugar de usar el objeto params.
+- Ventajas: Este enfoque evita completamente los problemas con los parámetros dinámicos en Next.js 15 y es más robusto ante cambios en la API.
+</rutas_api_nextjs_15>
 
-  // Route handler without params parameter
-  export async function GET(request: NextRequest) {
-    // Extract slug from URL
-    const slug = extractSlugFromURL(request.url);
-    // Use slug here
-  }
-  ```
-- **Ventajas**: Este enfoque evita completamente los problemas con los parámetros dinámicos en Next.js 15 y es más robusto ante cambios en la API.
+<Tema_claro_forzado>
+La aplicación está configurada para usar siempre el tema claro mediante:
+- Clase light en el elemento html
+- Meta tag <meta name="color-scheme" content="light only" />
+- Clases bg-white text-black en el elemento body
+</Tema_claro_forzado>
 
-### Tema Claro Forzado
-- La aplicación está configurada para usar siempre el tema claro mediante:
-  - Clase `light` en el elemento `html`
-  - Meta tag `<meta name="color-scheme" content="light only" />`
-  - Clases `bg-white text-black` en el elemento `body`
+<vercel_kv_redis>
+- La interfaz ListItem en src/lib/redis.ts usa comprado (no done) para el estado de los items.
+- Serialización de objetos: Es crucial asegurar que todos los objetos se serialicen correctamente antes de almacenarlos en Redis.
+- Problema común: El error Failed to parse item string: >>>[object Object]<<< ocurre cuando se almacena un objeto JavaScript directamente en Redis sin serializarlo correctamente a JSON.
+</vercel_kv_redis>
 
-### Vercel KV (Redis)
-- La interfaz `ListItem` en `src/lib/redis.ts` usa `comprado` (no `done`) para el estado de los items.
-- **Serialización de objetos**: Es crucial asegurar que todos los objetos se serialicen correctamente antes de almacenarlos en Redis:
-  ```typescript
-  // Crear objetos limpios para evitar problemas de serialización
-  const cleanItem: ListItem = {
-    id: item.id,
-    nombre: item.nombre,
-    cantidad: item.cantidad,
-    comprado: !!item.comprado // Asegurar que sea booleano
-  };
-  
-  // Convertir a JSON para almacenar en Redis
-  const itemString = JSON.stringify(cleanItem);
-  ```
-- **Problema común**: El error `Failed to parse item string: >>>[object Object]<<<` ocurre cuando se almacena un objeto JavaScript directamente en Redis sin serializarlo correctamente a JSON.
+<manejo_tipos_datos_redis>
+- Redis puede devolver tanto objetos JavaScript directos como cadenas JSON dependiendo del contexto.
+- Solución: Las funciones de gestión de Redis ahora manejan ambos formatos.
+- Beneficios: Mayor robustez en la interacción con Redis, menos errores de serialización y deserialización.
+</manejo_tipos_datos_redis>
 
-### Manejo de Tipos de Datos en Redis
-- **Problema detectado**: Redis puede devolver tanto objetos JavaScript directos como cadenas JSON dependiendo del contexto.
-- **Solución implementada**: Las funciones de gestión de Redis ahora manejan ambos formatos:
-  ```typescript
-  if (typeof itemData === 'string') {
-    // Procesar como cadena JSON
-    parsedItem = JSON.parse(itemData);
-  } else if (typeof itemData === 'object' && itemData !== null) {
-    // Usar el objeto directamente
-    parsedItem = itemData;
-  }
-  ```
-- **Beneficios**: Mayor robustez en la interacción con Redis, menos errores de serialización y deserialización.
+<drag_and_drop>
+- Biblioteca utilizada: @dnd-kit/core y @dnd-kit/sortable, compatibles con React 19.
+- Persistencia: Al finalizar el arrastre, se envía la lista reordenada al servidor mediante una petición PATCH.
+- UX mejorada: icono de arrastre, separación, contraste, selector optimizado, autocompletado, animaciones, etc.
+</drag_and_drop>
 
-### Reordenamiento de Listas mediante Drag and Drop
-- **Biblioteca utilizada**: @dnd-kit/core y @dnd-kit/sortable, compatibles con React 19.
-- **Implementación**: 
-  ```typescript
-  // Definir los sensores fuera del renderizado condicional para cumplir con las reglas de hooks
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-  
-  // En el renderizado
-  <DndContext
-    sensors={sensors}
-    collisionDetection={closestCenter}
-    onDragEnd={handleDragEnd}
-  >
-    <SortableContext 
-      items={list.map(item => item.id)}
-      strategy={verticalListSortingStrategy}
-    >
-      {/* Elementos arrastrables */}
-    </SortableContext>
-  </DndContext>
-  ```
-- **Persistencia**: Al finalizar el arrastre, se envía la lista reordenada al servidor mediante una petición PATCH.
-- **UX mejorada**: 
-  - Se añadió un icono de arrastre (⠿) para indicar visualmente que los elementos pueden reordenarse.
-  - Se aumentó la separación entre el icono de arrastre y el checkbox para evitar pulsaciones accidentales.
-  - Se mejoró el contraste de los textos para mayor legibilidad.
-  - Se simplificó el selector "Mover a..." para mostrar solo una flecha hacia abajo, ocupando menos espacio horizontal.
-  - Se eliminó la opción "otros" del desplegable de mover a otro supermercado.
-  - Se desactivó el autocompletado en las tiendas de "otros".
-  - Se implementó la adición automática al seleccionar un elemento del autocompletado.
-  - Se añadieron efectos de sombra, transiciones y animaciones para una experiencia más elegante.
-  - Se optimizó el autocompletado para que añada el nombre completo del artículo seleccionado.
-  - Se mejoraron los estados de carga con animaciones y los mensajes de error con iconos.
-  - Se corrigieron los botones "Volver" para que dirijan a la página correcta según el contexto.
+<vista_consolidada>
+- Funcionalidad: Muestra todos los elementos de todas las listas en la página principal.
+- Implementación: Componente AllItemsList que obtiene y combina elementos de todas las listas.
+- Visual: Indicador de color, navegación, soporte para tiendas personalizadas.
+</vista_consolidada>
 
-### Vista Consolidada de Todos los Artículos
-- **Funcionalidad**: Muestra todos los elementos de todas las listas en la página principal.
-- **Implementación**: Componente `AllItemsList` que obtiene y combina elementos de todas las listas.
-- **Indicadores visuales**: Cada elemento muestra un indicador de color correspondiente al supermercado al que pertenece.
-- **Navegación**: Al hacer clic en un elemento, se navega a la lista del supermercado correspondiente.
-- **Soporte para tiendas personalizadas**: Los elementos de tiendas personalizadas muestran la inicial de la tienda.
+<limpieza_listas>
+- Ruta API específica (/api/list/clean) para limpiar las listas de Redis y eliminar elementos inválidos.
+- Botón Reparar lista en la interfaz.
+- Implementación: PATCH y recarga de la lista.
+</limpieza_listas>
+</consideraciones_tecnicas_importantes>
 
-### Funcionalidad de Limpieza de Listas
-- Se ha implementado una ruta API específica (`/api/list/clean`) para limpiar las listas de Redis y eliminar elementos inválidos.
-- La ruta acepta un `superSlug` opcional para limpiar una lista específica o limpia todas las listas si no se proporciona.
-- En la interfaz de usuario, se ha añadido un botón "Reparar lista" que permite a los usuarios solucionar problemas de serialización sin intervención técnica.
-- Implementación:
-  ```typescript
-  // API route handler
-  export async function POST(request: NextRequest) {
-    const { superSlug } = await request.json();
-    // Limpia la lista específica o todas las listas
-    // ...
-    revalidatePath(`/super/${superSlug}`);
-  }
-  
-  // Cliente: función para limpiar la lista
-  const handleCleanList = async () => {
-    const response = await fetch('/api/list/clean', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ superSlug }),
-    });
-    // Recargar la lista después de limpiarla
-    fetchList();
-  };
-  ```
-</Consideraciones Técnicas Importantes>
+<despliegue>
+- Vercel.
+- Nombre del proyecto: lacompra.
+- Título de la web: LaCompra.
+- npm y alias @/*.
+- Se mantendrá un fichero proyecto.md.
+</despliegue>
 
-Despliegue en Vercel.
-El nombre del proyecto es 'lacompra' pero el título de la web es 'LaCompra'.
-Se usa npm y alias '@/*'.
-Se mantendrá un fichero proyecto.md.
+<interfaz_usuario>
+- Diseño Responsivo: móvil y escritorio.
+- Tema Claro: colores distintivos por supermercado.
+- Iconos y Animaciones: Heroicons y animaciones sutiles.
+- Imágenes de Supermercados: logotipos sin fondo, excepto Otros.
+- Supermercados Soportados: Mercadona, Eroski, Gadis, Lidl, Froiz y Otros.
+</interfaz_usuario>
 
-### Interfaz de Usuario
-
-- **Diseño Responsivo**: La aplicación está diseñada para funcionar en dispositivos móviles y de escritorio.
-- **Tema Claro**: Se utiliza un tema claro con colores distintivos para cada supermercado.
-- **Iconos y Animaciones**: Se utilizan iconos de Heroicons y animaciones sutiles para mejorar la experiencia de usuario.
-- **Imágenes de Supermercados**: Se utilizan imágenes de los logotipos de los supermercados en la página principal, sin texto ni color de fondo, excepto para el botón "Otros".
-- **Supermercados Soportados**: Mercadona, Eroski, Gadis, Lidl, Froiz y Otros (para tiendas personalizadas).
-
+</proyecto_lacompra>

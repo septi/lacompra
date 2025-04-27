@@ -1,3 +1,4 @@
+// Componente para mostrar y gestionar ítems de tiendas personalizadas (Otros)
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 

@@ -1,3 +1,4 @@
+// Página principal: vista consolidada de todos los ítems de todas las listas
 'use client'; // Mark this component as a Client Component
 
 import { useState, useEffect } from 'react';

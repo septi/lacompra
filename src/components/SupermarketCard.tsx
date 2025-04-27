@@ -1,3 +1,4 @@
+// Componente para mostrar la tarjeta de un supermercado en la página principal
 import Link from 'next/link';
 import Image from 'next/image';
 

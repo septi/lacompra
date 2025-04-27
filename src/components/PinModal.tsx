@@ -1,5 +1,6 @@
 'use client';
 
+// Componente modal para introducir o solicitar un PIN de acceso
 import { useState } from 'react';
 
 interface PinModalProps {

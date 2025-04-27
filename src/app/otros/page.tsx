@@ -1,3 +1,4 @@
+// Página para gestionar tiendas personalizadas (Otros)
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';

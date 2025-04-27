@@ -1,3 +1,4 @@
+// Componente que muestra una vista consolidada de todos los ítems de todas las listas
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -213,25 +214,20 @@ export default function AllItemsList() {
                   </Link>
                   
                   {/* Lista de elementos */}
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-3">
-                    {items.map(item => (
-                      <Link 
-                        key={`${key}-${item.id}`} /* Clave compuesta para evitar duplicados */
-                        href={href}
-                        className="text-gray-800 hover:text-blue-600 p-3 rounded-lg hover:bg-blue-50 flex items-center justify-between transition-all duration-200 border border-transparent hover:border-blue-100"
-                      >
-                        <span className="flex-1 font-medium truncate">
-                          {item.nombre}
-                        </span>
-                        {/* Cantidad */}
-                        {item.cantidad > 1 && (
-                          <span className="text-gray-700 font-bold ml-2 bg-gray-100 px-2 py-1 rounded-full text-sm">
-                            ×{item.cantidad}
-                          </span>
-                        )}
-                      </Link>
-                    ))}
-                  </div>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-2">
+  {items.map(item => (
+    <Link 
+      key={`${key}-${item.id}`}
+      href={href}
+      className="text-gray-800 hover:text-blue-600 px-2 py-1 rounded flex items-center min-h-8 transition-all duration-150 border border-transparent hover:bg-blue-50 hover:border-blue-100"
+      style={{ fontSize: '1rem', lineHeight: '1.2', minHeight: '2.25rem' }}
+    >
+      <span className="flex-1 font-medium truncate">
+        {item.nombre}
+      </span>
+    </Link>
+  ))}
+</div>
                 </div>
               );
             })}

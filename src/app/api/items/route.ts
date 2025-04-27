@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { getList, replaceList } from '@/lib/redis';
+import { getItemPredictivos, setItemPredictivos } from '@/lib/redis';
 
 // GET /api/items - retrieve the list of backup/editable items
 export async function GET(request: NextRequest) {
   try {
-    const list = await getList('items'); // Array of ListItem {id, nombre,...}
-    // Convert to { item, seccion }
-    // Map to {item, seccion}, seccion stored in Redis; cast to any for TS
-    const items = list.map(i => ({
-      item: i.nombre,
-      seccion: (i as any).seccion ?? ''
-    }));
+    const items = await getItemPredictivos();
     return NextResponse.json(items);
   } catch (error) {
     console.error('GET /api/items error:', error);
@@ -26,18 +20,18 @@ export async function PATCH(request: NextRequest) {
     if (!Array.isArray(payload.orderedList)) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
-    // Map to ListItem[] for Redis, preserving section
-    const newList = payload.orderedList.map((e: { item: string; seccion: string }) => ({
-      id: uuidv4(),
-      nombre: e.item,
-      cantidad: 1,
-      comprado: false,
-      seccion: e.seccion
-    }));
-    const success = await replaceList('items', newList);
-    if (!success) {
-      return NextResponse.json({ error: 'Failed to update items' }, { status: 500 });
-    }
+    // Convertir todos los elementos a ItemPredictivo
+    const itemPredictivos = payload.orderedList.map((e: any) => {
+      if (typeof e.id === 'string' && typeof e.nombre === 'string') {
+        return { id: e.id, nombre: e.nombre, seccion: e.seccion ?? '' };
+      }
+      return {
+        id: uuidv4(),
+        nombre: e.item ?? '',
+        seccion: e.seccion ?? ''
+      };
+    });
+    await setItemPredictivos(itemPredictivos);
     return NextResponse.json({ message: 'Items updated' });
   } catch (error) {
     console.error('PATCH /api/items error:', error);

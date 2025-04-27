@@ -1,3 +1,4 @@
+// Página de lista de la compra para un supermercado concreto, con drag & drop y autocompletado
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -236,12 +237,8 @@ export default function SuperListPage() {
             const congelados = mapped.filter((item: ListItem) => item.seccion === 'congelados');
             const ordered = [...fruteria, ...noneSection, ...congelados];
             setList(ordered);
-            // Persistir orden en backend
-            await fetch(`/api/list/${superSlug}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderedList: ordered }),
-            });
+            // No persistir orden en backend automáticamente tras cada fetch
+            // El PATCH debe lanzarse solo en drag & drop o acciones explícitas de reordenar/guardar
         } catch (err) {
             console.error('Error fetching list:', err);
             setError('Error al cargar la lista. Por favor, inténtalo de nuevo.');
@@ -293,18 +290,26 @@ export default function SuperListPage() {
     const addItem = async (nombre: string) => {
         setError(null);
         try {
-            // Determine section from backupItems
-            const seccion = backupItems.find(b => b.item === nombre)?.seccion ?? '';
+            // Busca el ítem en backupItems ignorando tildes, mayúsculas y espacios
+            // Así siempre usamos el nombre y la sección "oficiales" del backup para coherencia y debug
+            const normalize = (str: string) =>
+                str.normalize('NFD').replace(/[ -]/g, '').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+            const found = backupItems.find(
+                b => normalize(b.item) === normalize(nombre)
+            );
+            const nombreFinal = found ? found.item : nombre;
+            const seccion = found?.seccion ?? '';
+            // Siempre guardamos el nombre y la sección tal como están en backupItems si existe
             const response = await fetch(apiBaseUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre, seccion }),
+                body: JSON.stringify({ nombre: nombreFinal, seccion }),
             });
             if (!response.ok) {
                 const errData = await response.json();
                 throw new Error(errData.error || 'Error al añadir artículo');
             }
-            // Refresh list to apply ordering and fetch actual sections
+            // Refresca la lista para asegurar orden y secciones correctas
             await fetchList();
             setNewItemName('');
         } catch (err: any) {
@@ -449,13 +454,12 @@ const currentList = [...list];
         const value = e.target.value;
         setNewItemName(value);
         if (value.length > 0) {
+            // Normalización robusta: elimina diacríticos y minúsculas
             const normalize = (str: string) =>
-                str.normalize('NFD').replace(/[ -]/g, '')?.toLowerCase() // remove diacritics
-                    .normalize('NFD').replace(/[ -]/g, '');
-            // actually diacritics removal
-            const normalized = value.normalize('NFD').replace(/[ -]/g, '').toLowerCase();
+                str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            const normalized = normalize(value);
             const filtered = groceryItems
-                .filter(item => item.normalize('NFD').replace(/[ -]/g, '').toLowerCase().startsWith(normalized))
+                .filter(item => normalize(item).startsWith(normalized))
                 .slice(0, 8);
             setSuggestions(filtered);
             setShowSuggestions(filtered.length > 0);
@@ -568,14 +572,24 @@ const currentList = [...list];
                     <summary className="cursor-pointer font-semibold text-gray-800">Comprados ({purchasedItems.length})</summary>
                     <ul className="mt-2 space-y-3">
                         {purchasedItems.map(item => (
-                            <li key={item.id} className="flex items-center p-2 my-2 bg-white rounded-md shadow-md">
-                                <input type="checkbox" checked={item.comprado} onChange={() => handleToggleComprado(item.id)} className="mr-2 w-5 h-5 rounded-md border-gray-300 text-green-500 focus:ring-0 shadow-inner" />
-                                <div className="flex-grow truncate line-through text-gray-400" style={{ maxWidth: 'calc(100% - 60px)' }}>
-                                    {item.nombre}
-                                </div>
-                                <span className="mx-2 px-2 font-bold rounded-full bg-gray-50 line-through text-gray-400">{item.cantidad}</span>
-                            </li>
-                        ))}
+    <li key={item.id} className="flex items-center p-2 my-2 bg-white rounded-md shadow-md">
+        <input type="checkbox" checked={item.comprado} onChange={() => handleToggleComprado(item.id)} className="mr-2 w-5 h-5 rounded-md border-gray-300 text-green-500 focus:ring-0 shadow-inner" />
+        <div className="flex-grow truncate line-through text-gray-400" style={{ maxWidth: 'calc(100% - 90px)' }}>
+            {item.nombre}
+        </div>
+        <span className="mx-2 px-2 font-bold rounded-full bg-gray-50 line-through text-gray-400">{item.cantidad}</span>
+        <button
+            onClick={() => handleDeleteItem(item.id)}
+            className="ml-2 p-1 text-red-600 hover:text-white hover:bg-red-500 rounded-full transition-colors"
+            aria-label="Eliminar comprado"
+            type="button"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </li>
+))}
                     </ul>
                 </details>
             )}
@@ -602,7 +616,22 @@ const currentList = [...list];
                         type="text" 
                         value={newItemName} 
                         onChange={handleInputChange}
-                        onFocus={() => setShowSuggestions(suggestions.length > 0)}
+                        onFocus={() => {
+  if (newItemName.length === 0) {
+    setSuggestions(groceryItems);
+    setShowSuggestions(true);
+  } else {
+    setShowSuggestions(suggestions.length > 0);
+  }
+}}
+                        onClick={() => {
+  if (newItemName.length === 0) {
+    setSuggestions(groceryItems);
+    setShowSuggestions(true);
+  } else {
+    setShowSuggestions(suggestions.length > 0);
+  }
+}}
                         onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
                         placeholder="Agregar artículo" 
                         className="w-full p-2 text-gray-700 border-0 rounded-xl shadow-[0_3px_10px_rgb(0,0,0,0.05),inset_0_0_0_1px_rgba(0,0,0,0.08)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:shadow-lg"

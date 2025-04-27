@@ -142,91 +142,80 @@ export async function cleanList(listName: string): Promise<boolean> {
 // Helper function to build the Redis key for a list
 const getKey = (superSlug: string) => `list:${superSlug}`;
 
-/**
- * Fetches all items from a Redis list and parses them.
- * @param superSlug The supermarket slug.
- * @returns An array of ListItems.
- */
-export async function getList(superSlug: string): Promise<ListItem[]> {
-    // Asegurar que usamos la clave correcta con el prefijo 'list:'
-    const key = getKey(superSlug);
-    console.log(`Fetching list for ${superSlug} (key: ${key})`);
-    
+import { ItemPredictivo } from '@/types/itemPredictivo';
+
+// --- Predictivos ---
+export async function getItemPredictivos(): Promise<ItemPredictivo[]> {
+    const key = getKey('items');
+    console.log(`Fetching predictivos (key: ${key})`);
     try {
-        // Obtener elementos de Redis
         const itemStrings = await redis.lrange(key, 0, -1);
-        
-        if (!itemStrings || itemStrings.length === 0) {
-            console.log(`No items found for ${key}`);
-            return [];
-        }
-
-        console.log(`Found ${itemStrings.length} items in Redis for ${key}`);
-        
-        // Mapear y validar los elementos
-        const validItems: ListItem[] = [];
-        
-        for (let i = 0; i < itemStrings.length; i++) {
-            const itemData = itemStrings[i];
+        if (!itemStrings || itemStrings.length === 0) return [];
+        return itemStrings.map((itemData: string) => {
             try {
-                let parsedItem: any;
-                
-                // Manejar diferentes tipos de datos que podría devolver Redis
-                if (typeof itemData === 'string') {
-                    // Es una cadena JSON, intentar parsearla
-                    if (itemData === '[object Object]') {
-                        console.log(`Skipping invalid [object Object] string at index ${i}`);
-                        continue;
-                    }
-                    
-                    try {
-                        parsedItem = JSON.parse(itemData);
-                        console.log(`Successfully parsed JSON string at index ${i}`);
-                    } catch (parseError) {
-                        console.error(`Error parsing JSON at index ${i}:`, itemData);
-                        continue;
-                    }
-                } else if (typeof itemData === 'object' && itemData !== null) {
-                    // Redis ya devolvió un objeto directamente, usarlo como está
-                    parsedItem = itemData;
-                    console.log(`Using direct object at index ${i}:`, parsedItem);
-                } else {
-                    // Otro tipo de dato que no podemos manejar
-                    console.error(`Skipping unknown data type at index ${i}:`, typeof itemData);
-                    continue;
-                }
-                
-                // Validar la estructura del objeto (independientemente de su origen)
-                if (!parsedItem || 
-                    typeof parsedItem !== 'object' || 
-                    !parsedItem.id || 
-                    !parsedItem.nombre) {
-                    console.error(`Skipping item with invalid structure at index ${i}:`, parsedItem);
-                    continue;
-                }
-                
-                // Añadir el elemento limpio a la lista
-                validItems.push({
-                    id: String(parsedItem.id),
-                    nombre: String(parsedItem.nombre),
-                    cantidad: Number(parsedItem.cantidad || 1),
-                    comprado: parsedItem.comprado ?? false,
-                    seccion: parsedItem.seccion ?? ''
-                });
-                console.log(`Added valid item to results: ${parsedItem.nombre}`);
-                
-            } catch (error) {
-                console.error(`Error processing item at index ${i}:`, error);
-                // Continuar con el siguiente elemento
+                const parsed = JSON.parse(itemData);
+                return {
+                    id: parsed.id ?? crypto.randomUUID(),
+                    nombre: parsed.nombre ?? parsed.item ?? '',
+                    seccion: parsed.seccion ?? ''
+                };
+            } catch {
+                return null;
             }
-        }
-
-        console.log(`Successfully parsed ${validItems.length} of ${itemStrings.length} items from ${key}`);
-        return validItems;
-    } catch (error) {
-        console.error(`Error fetching list ${key}:`, error);
+        }).filter(Boolean) as ItemPredictivo[];
+    } catch (err) {
+        console.error('Error fetching predictivos:', err);
         return [];
     }
+}
+
+export async function setItemPredictivos(list: ItemPredictivo[]): Promise<void> {
+    const key = getKey('items');
+    await redis.del(key);
+    if (list.length > 0) {
+        await redis.rpush(key, ...list.map(i => JSON.stringify(i)));
+    }
+}
+
+
+// --- Listas de supermercado ---
+export async function getSuperList(superSlug: string): Promise<ListItem[]> {
+    const key = getKey(superSlug);
+    console.log(`Fetching super list for ${superSlug} (key: ${key})`);
+    try {
+        const itemStrings = await redis.lrange(key, 0, -1);
+        if (!itemStrings || itemStrings.length === 0) return [];
+        return itemStrings.map((itemData: any) => {
+            const parsed = typeof itemData === 'string' ? JSON.parse(itemData) : itemData;
+            return {
+                id: parsed.id ?? crypto.randomUUID(),
+                nombre: parsed.nombre ?? parsed.item ?? '',
+                cantidad: parsed.cantidad ?? 1,
+                comprado: parsed.comprado ?? false,
+                seccion: parsed.seccion ?? ''
+            };
+        });
+    } catch (err) {
+        console.error('Error fetching super list:', err);
+        return [];
+    }
+}
+
+export async function setSuperList(superSlug: string, list: ListItem[]): Promise<void> {
+    const key = getKey(superSlug);
+    await redis.del(key);
+    if (list.length > 0) {
+        await redis.rpush(key, ...list.map(i => JSON.stringify(i)));
+    }
+}
+
+/**
+ * @deprecated Usar getItemPredictivos o getSuperList según el caso
+ */
+export async function getList(superSlug: string): Promise<any[]> {
+    console.warn('getList is deprecated, use getItemPredictivos or getSuperList instead');
+    if (superSlug === 'items') return getItemPredictivos();
+    return getSuperList(superSlug);
 }
 
 /**
@@ -342,6 +331,12 @@ export async function replaceList(superSlug: string, items: ListItem[]): Promise
             seccion: item.seccion ?? ''
         }));
         
+        // Si el array está vacío, NO modificar la lista (protección anti-borrado)
+        if (cleanItems.length === 0) {
+            console.warn(`replaceList: llamada ignorada porque items está vacío para ${key}`);
+            return true;
+        }
+
         // Serializar correctamente a JSON
         const itemStrings = cleanItems.map(item => {
             const str = JSON.stringify(item);
@@ -352,13 +347,13 @@ export async function replaceList(superSlug: string, items: ListItem[]): Promise
             return str;
         });
         
+        // Iniciar transacción
         const tx = redis.multi();
-        tx.del(key); // Delete the old list
-        if (itemStrings.length > 0) {
-            tx.rpush(key, ...itemStrings); // Add all new items
-        }
+        tx.del(key);
+        itemStrings.forEach(item => {
+            tx.rpush(key, item);
+        });
         const result = await tx.exec();
-        // exec returns array of results, [number_deleted, new_list_length] or [number_deleted] if items was empty
         if (result === null || result.includes(null)) {
              console.error(`Transaction failed for replacing list ${key}. Result:`, result);
              return false;
