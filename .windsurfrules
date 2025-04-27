@@ -57,11 +57,12 @@ La aplicación está configurada para usar siempre el tema claro mediante:
 - La interfaz ListItem en src/lib/redis.ts usa comprado (no done) para el estado de los items.
 - Serialización de objetos: Es crucial asegurar que todos los objetos se serialicen correctamente antes de almacenarlos en Redis.
 - Problema común: El error Failed to parse item string: >>>[object Object]<<< ocurre cuando se almacena un objeto JavaScript directamente en Redis sin serializarlo correctamente a JSON.
+- Solución robusta: getSuperList parsea defensivamente cada elemento, aceptando tanto string JSON como objeto ya parseado, evitando listas vacías por errores de formato.
 </vercel_kv_redis>
 
 <manejo_tipos_datos_redis>
 - Redis puede devolver tanto objetos JavaScript directos como cadenas JSON dependiendo del contexto.
-- Solución: Las funciones de gestión de Redis ahora manejan ambos formatos.
+- Solución: Las funciones de gestión de Redis ahora manejan ambos formatos de manera robusta (parseo defensivo en getSuperList).
 - Beneficios: Mayor robustez en la interacción con Redis, menos errores de serialización y deserialización.
 </manejo_tipos_datos_redis>
 
@@ -69,6 +70,7 @@ La aplicación está configurada para usar siempre el tema claro mediante:
 - Biblioteca utilizada: @dnd-kit/core y @dnd-kit/sortable, compatibles con React 19.
 - Persistencia: Al finalizar el arrastre, se envía la lista reordenada al servidor mediante una petición PATCH.
 - UX mejorada: icono de arrastre, separación, contraste, selector optimizado, autocompletado, animaciones, etc.
+- El frontend ya no envía PATCH tras cada fetch, solo en acciones explícitas de reordenar o editar.
 </drag_and_drop>
 
 <vista_consolidada>
@@ -81,7 +83,13 @@ La aplicación está configurada para usar siempre el tema claro mediante:
 - Ruta API específica (/api/list/clean) para limpiar las listas de Redis y eliminar elementos inválidos.
 - Botón Reparar lista en la interfaz.
 - Implementación: PATCH y recarga de la lista.
+- Protección anti-borrado: replaceList nunca borra la lista si el array recibido es vacío.
 </limpieza_listas>
+
+<gestion_listas_robusta>
+- El parseo de listas en getSuperList es defensivo: acepta tanto strings como objetos ya parseados, sin logs ni filtros innecesarios.
+- Esto garantiza que la lista nunca aparecerá vacía por un error de formato, independientemente de cómo devuelva Redis los datos.
+</gestion_listas_robusta>
 </consideraciones_tecnicas_importantes>
 
 <despliegue>
