@@ -21,12 +21,14 @@ interface ListItem {
   nombre: string;
   cantidad: number;
   seccion?: string; // Sección asignada
+  comprado?: boolean;
 }
 
 // Tipo para los elementos con información del supermercado
 interface ItemWithSuper extends ListItem {
   superSlug: string;
   tiendaName?: string; // Para elementos de "otros"
+  comprado?: boolean;
 }
 
 export default function AllItemsList() {
@@ -109,7 +111,7 @@ export default function AllItemsList() {
   const groupedItems = useMemo(() => {
     const groups: Record<string, ItemWithSuper[]> = {};
     
-    allItems.forEach(item => {
+    allItems.filter(item => !item.comprado).forEach(item => {
       // Crear una clave única para cada supermercado/tienda
       const key = item.superSlug === 'otros' && item.tiendaName 
         ? `otros-${item.tiendaName}` 

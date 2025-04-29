@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { v4 as uuidv4 } from 'uuid'; // For generating item IDs
 import { revalidatePath } from 'next/cache'; // Import for cache invalidation
 import {
-  getList,
+  getSuperList,
   addItem,
   replaceList,
   ListItem,
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     console.log(`GET: Fetching list for supermarket: ${superSlug}`);
     
     // Ahora getList siempre devuelve un array (vacío en caso de error)
-    const list = await getList(superSlug); // Pass slug directly
+    const list = await getSuperList(superSlug);
     
     console.log('API GET /api/list/', superSlug, '-> raw list:', list);
     // Merge with backupItems to ensure seccion
@@ -145,7 +145,7 @@ export async function PATCH(request: NextRequest) {
       }
 
       // Ahora getList siempre devuelve un array (vacío en caso de error)
-      const currentList = await getList(superSlug);
+      const currentList = await getSuperList(superSlug);
       
       if (currentList.length === 0) {
         return NextResponse.json({ error: 'List not found or empty' }, { status: 404 });
@@ -186,7 +186,7 @@ export async function PATCH(request: NextRequest) {
     // Option 3: Updating the 'comprado' flag
     if (payload.itemId && payload.comprado !== undefined) {
       const { itemId, comprado } = payload;
-      const currentList = await getList(superSlug);
+      const currentList = await getSuperList(superSlug);
       let itemFound = false;
       const updatedList = currentList.map(item => {
         if (item.id === itemId) {
@@ -236,7 +236,7 @@ export async function DELETE(request: NextRequest) {
     console.log(`DELETE: Removing item ${itemId} from supermarket: ${superSlug}`);
 
     // Ahora getList siempre devuelve un array (vacío en caso de error)
-    const currentList = await getList(superSlug);
+    const currentList = await getSuperList(superSlug);
     
     if (currentList.length === 0) {
       // Item or list doesn't exist

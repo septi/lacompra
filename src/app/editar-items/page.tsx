@@ -146,21 +146,7 @@ export default function EditItemsPage() {
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Edición de Ítems Predictivos</h1>
         <div className="flex gap-2 items-center">
-          <button
-            onClick={handleImport}
-            disabled={importing}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded-md border border-gray-400 text-sm disabled:opacity-60"
-            type="button"
-          >
-            {importing ? (
-              <span className="flex items-center gap-1">
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                Importando…
-              </span>
-            ) : (
-              'Importar backup'
-            )}
-          </button>
+
           <Link href="/" className="text-blue-500 hover:underline">← Volver</Link>
         </div>
       </div>

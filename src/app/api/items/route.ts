@@ -6,6 +6,15 @@ import { getItemPredictivos, setItemPredictivos } from '@/lib/redis';
 export async function GET(request: NextRequest) {
   try {
     const items = await getItemPredictivos();
+    console.log('[API/items][GET] Resultado getItemPredictivos:', items);
+    if (Array.isArray(items)) {
+      console.log(`[API/items][GET] items.length: ${items.length}`);
+      if (items.length > 0) {
+        console.log('[API/items][GET] Primer item:', items[0]);
+      }
+    } else {
+      console.warn('[API/items][GET] items no es un array:', typeof items);
+    }
     return NextResponse.json(items);
   } catch (error) {
     console.error('GET /api/items error:', error);

@@ -147,13 +147,14 @@ import { ItemPredictivo } from '@/types/itemPredictivo';
 // --- Predictivos ---
 export async function getItemPredictivos(): Promise<ItemPredictivo[]> {
     const key = getKey('items');
-    console.log(`Fetching predictivos (key: ${key})`);
+
     try {
         const itemStrings = await redis.lrange(key, 0, -1);
+
         if (!itemStrings || itemStrings.length === 0) return [];
-        return itemStrings.map((itemData: string) => {
+        return itemStrings.map((itemData: any) => {
             try {
-                const parsed = JSON.parse(itemData);
+                const parsed = typeof itemData === 'string' ? JSON.parse(itemData) : itemData;
                 return {
                     id: parsed.id ?? crypto.randomUUID(),
                     nombre: parsed.nombre ?? parsed.item ?? '',
@@ -209,14 +210,7 @@ export async function setSuperList(superSlug: string, list: ListItem[]): Promise
     }
 }
 
-/**
- * @deprecated Usar getItemPredictivos o getSuperList según el caso
- */
-export async function getList(superSlug: string): Promise<any[]> {
-    console.warn('getList is deprecated, use getItemPredictivos or getSuperList instead');
-    if (superSlug === 'items') return getItemPredictivos();
-    return getSuperList(superSlug);
-}
+
 
 /**
  * Adds a new item to the end of a Redis list.

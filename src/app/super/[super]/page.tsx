@@ -661,21 +661,10 @@ const currentList = [...list];
             
             {renderListItems()}
             
-            {/* Botón para limpiar la lista */}
-            <button 
-                onClick={handleCleanList}
-                className="mt-4 p-2 text-red-500 hover:bg-red-50 rounded flex items-center justify-center"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Limpiar lista
-            </button>
-            
             {/* Botón para mover todos los artículos a otro super */}
             {!superSlug.startsWith('otros-') && (
             <div className="mt-4">
-                <label className="text-gray-700 font-medium">Mover todo a:</label>
+                <label className="text-gray-700 font-medium">Mover todo a: </label>
                 <div className="relative inline-block">
                     <select 
                         className="appearance-none bg-white border border-gray-300 rounded-md py-2 pl-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
@@ -700,12 +689,26 @@ const currentList = [...list];
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                            <path d="M7.293 14.707a1 1 0 001.414 0l5-5a1 1 0 00-1.414-1.414L9 11.586 5.707 8.293a1 1 0 00-1.414 1.414l5 5z" />
                         </svg>
                     </div>
                 </div>
             </div>
             )}
+            {/* Botón para limpiar la lista */}
+            <button 
+                onClick={() => {
+                    if (window.confirm('¿Seguro que quieres borrar la lista? Esta acción no se puede deshacer.')) {
+                        handleCleanList();
+                    }
+                }}
+                className="mt-4 p-2 text-red-500 hover:bg-red-50 rounded flex items-center justify-center"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Borrar lista
+            </button>
         </div>
     );
 }

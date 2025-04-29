@@ -56,9 +56,16 @@ La aplicación está configurada para usar siempre el tema claro mediante:
 <vercel_kv_redis>
 - La interfaz ListItem en src/lib/redis.ts usa comprado (no done) para el estado de los items.
 - Serialización de objetos: Es crucial asegurar que todos los objetos se serialicen correctamente antes de almacenarlos en Redis.
-- Problema común: El error Failed to parse item string: >>>[object Object]<<< ocurre cuando se almacena un objeto JavaScript directamente en Redis sin serializarlo correctamente a JSON.
+- El único método válido para obtener listas de supermercados es getSuperList (y getItemPredictivos para predictivos). Se eliminó definitivamente la función getList y sus imports asociados.
+- No hay métodos ni utilidades deprecated en uso actualmente en el backend ni frontend.
+- El código está libre de warnings y referencias obsoletas tras la limpieza realizada.
 - Solución robusta: getSuperList parsea defensivamente cada elemento, aceptando tanto string JSON como objeto ya parseado, evitando listas vacías por errores de formato.
 </vercel_kv_redis>
+
+<ux_lista_super>
+- El botón 'Borrar lista' en la interfaz de gestión de listas aparece justo debajo de la opción 'Mover todo a', mejorando la experiencia de usuario y la lógica de acciones sobre la lista.
+</ux_lista_super>
+
 
 <manejo_tipos_datos_redis>
 - Redis puede devolver tanto objetos JavaScript directos como cadenas JSON dependiendo del contexto.

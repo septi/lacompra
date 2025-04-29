@@ -77,9 +77,11 @@ export default function Home() {
               />
             ))}
           </div>
-          
-          {/* Lista de todos los elementos de todas las listas */}
+
+          {/* Lista de todos los elementos de todas las listas (ahora al final) */}
           <AllItemsList />
+        
+
         </main>
       )}
     </div>
