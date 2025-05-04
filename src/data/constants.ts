@@ -3,8 +3,10 @@
 export const FIXED_SUPERS: string[] = [
   'mercadona',
   'eroski',
-  'gadis',
   'lidl',
+  'gadis',
   'froiz',
-  'otros', // 'otros' suele ser útil
+  'otros',
+  'proximamente',
+  'cosas-varias',
 ];

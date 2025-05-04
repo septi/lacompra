@@ -26,12 +26,14 @@ const superColors: { [key: string]: string } = {
 const getSofterColor = (superSlug: string): string => {
   // Mapeo de colores a versiones más suaves (HSL)
   const colorMap: { [key: string]: string } = {
-    mercadona: 'hsl(142, 70%, 95%)', // Verde suave
-    eroski: 'hsl(0, 70%, 95%)',      // Rojo suave
-    lidl: 'hsl(220, 70%, 95%)',      // Azul suave
-    gadis: 'hsl(50, 70%, 95%)',      // Amarillo suave
-    froiz: 'hsl(0, 70%, 95%)',       // Rojo suave
-    otros: 'hsl(0, 0%, 95%)',        // Gris suave
+    mercadona: 'hsl(142, 70%, 95%)',   // Verde suave
+    eroski: 'hsl(0, 70%, 95%)',        // Rojo suave
+    lidl: 'hsl(220, 70%, 95%)',        // Azul suave
+    gadis: 'hsl(50, 70%, 95%)',        // Amarillo suave
+    froiz: 'hsl(0, 70%, 95%)',         // Rojo suave
+    otros: 'hsl(0, 0%, 95%)',          // Gris suave
+    proximamente: 'hsl(271, 70%, 95%)',// Morado suave
+    'cosas-varias': 'hsl(340, 70%, 95%)',// Rosa suave
   };
   
   // Si es un supermercado "otros-X", usar el color de "otros"
@@ -42,14 +44,17 @@ const getSofterColor = (superSlug: string): string => {
   return colorMap[superSlug] || colorMap.otros;
 };
 
-// Helper to capitalize first letter or format 'otros-...' slugs
+// Helper to format supermarket name: remove 'otros-' prefix, replace hyphens with spaces and capitalize each word
 const formatSuperName = (slug: string): string => {
     if (!slug) return '';
+    let base = slug;
     if (slug.startsWith('otros-')) {
-        const name = slug.substring(6);
-        return name.charAt(0).toUpperCase() + name.slice(1);
+        base = slug.substring(6);
     }
-    return slug.charAt(0).toUpperCase() + slug.slice(1);
+    return base
+        .split('-')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
 };
 
 // Definir interfaces para los props
@@ -91,6 +96,8 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
     const [showActions, setShowActions] = useState(false);
     // Estado para editar link
     const [linkValue, setLinkValue] = useState<string>(item.link || '');
+    // Permitir mover solo en supermercados principales
+    const canMove = ['mercadona','eroski','lidl','gadis','froiz'].includes(superSlug);
 
     return (
         <li 
@@ -169,29 +176,6 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
                         </div>
                     </div>
 
-                    {/* Move to another list - No mostrar en tiendas de otros */}
-                    {!superSlug.startsWith('otros-') && (
-                        <div className="p-2 border-b border-gray-100">
-                            <div className="flex items-center justify-between">
-                                <span className="text-gray-700">Mover a:</span>
-                                <select 
-                                    className="ml-2 p-1 border-0 rounded-lg shadow-[0_2px_5px_rgb(0,0,0,0.08),inset_0_0_0_1px_rgba(0,0,0,0.08)] focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                    onChange={(e) => {
-                                        if (e.target.value) {
-                                            onMoveItem(item.id, e.target.value);
-                                            setShowActions(false);
-                                        }
-                                    }}
-                                    value=""
-                                >
-                                    <option value="" disabled>Seleccionar</option>
-                                    {FIXED_SUPERS.filter(s => s !== superSlug && s !== 'otros').map(slug => (
-                                        <option key={slug} value={slug}>{slug.charAt(0).toUpperCase() + slug.slice(1)}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-                    )}
                     {/* Link Controls solo para Otros */}
                     {superSlug.startsWith('otros-') && (
                       <div className="p-2 border-t border-gray-100 flex items-center space-x-2">
@@ -220,6 +204,9 @@ export default function SuperListPage() {
     const params = useParams();
     const router = useRouter();
     const superSlug = params.super as string; // Get slug from URL
+    const isCosas = superSlug === 'cosas-varias';
+    // Permitir mover todos solo en supermercados principales (sin otros, proximamente ni cosas-varias)
+    const canMoveAll = ['mercadona','eroski','lidl','gadis','froiz'].includes(superSlug);
 
     const [list, setList] = useState<ListItem[]>([]);
     const [newItemName, setNewItemName] = useState('');
@@ -321,7 +308,7 @@ export default function SuperListPage() {
             // Busca el ítem en backupItems ignorando tildes, mayúsculas y espacios
             // Así siempre usamos el nombre y la sección "oficiales" del backup para coherencia y debug
             const normalize = (str: string) =>
-                str.normalize('NFD').replace(/[ -]/g, '').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+                str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
             const found = backupItems.find(
                 b => normalize(b.item) === normalize(nombre)
             );
@@ -481,14 +468,10 @@ const currentList = [...list];
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setNewItemName(value);
-        if (value.length > 0) {
-            // Normalización robusta: elimina diacríticos y minúsculas
+        if (!isCosas && value.length > 0) {
             const normalize = (str: string) =>
-                str.normalize('NFD').replace(/[ -]/g, '').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-            const normalized = normalize(value);
-            const filtered = groceryItems
-                .filter(item => normalize(item).startsWith(normalized))
-                .slice(0, 8);
+                str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            const filtered = groceryItems.filter(item => normalize(item).startsWith(normalize(value))).slice(0,8);
             setSuggestions(filtered);
             setShowSuggestions(filtered.length > 0);
         } else {
@@ -665,7 +648,8 @@ const currentList = [...list];
                         className="w-full p-2 text-gray-700 border-0 rounded-xl shadow-[0_3px_10px_rgb(0,0,0,0.05),inset_0_0_0_1px_rgba(0,0,0,0.08)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:shadow-lg"
                         autoComplete="off"
                     />
-                    {showSuggestions && !superSlug.startsWith('otros-') && (
+                    {/* Autocomplete solo si no es cosas-variadas */}
+                    {!isCosas && showSuggestions && (
                         <ul className="absolute left-0 right-0 z-10 bg-white border-0 rounded-xl shadow-xl mt-1 max-h-48 overflow-y-auto">
                             {suggestions.map((suggestion) => (
                                 <li
@@ -690,7 +674,7 @@ const currentList = [...list];
             {renderListItems()}
             
             {/* Botón para mover todos los artículos a otro super */}
-            {!superSlug.startsWith('otros-') && (
+            {canMoveAll && (
             <div className="mt-4">
                 <label className="text-gray-700 font-medium">Mover todo a: </label>
                 <div className="relative inline-block">

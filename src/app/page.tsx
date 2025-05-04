@@ -15,6 +15,8 @@ const superColors: { [key: string]: string } = {
   gadis: 'bg-yellow-500 hover:bg-yellow-600',
   froiz: 'bg-red-600 hover:bg-red-700',
   otros: 'bg-gray-500 hover:bg-gray-600',
+  proximamente: 'bg-purple-600 hover:bg-purple-700',
+  'cosas-varias': 'bg-pink-600 hover:bg-pink-700',
 };
 
 // Función para generar un color aleatorio suave
@@ -24,8 +26,14 @@ const getRandomPastelColor = () => {
   return `hsl(${hue}, 70%, 90%)`; // Saturación al 70%, luminosidad al 90% para colores suaves
 };
 
-// Helper to capitalize first letter
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+// Helper to capitalize each word and replace hyphens with spaces, except 'cosas-varias'
+const capitalize = (s: string) => {
+  if (s === 'cosas-varias') return 'Cosas varias';
+  return s
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+};
 
 // Función para generar un color aleatorio suave
 export default function Home() {

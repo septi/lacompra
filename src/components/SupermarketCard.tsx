@@ -15,17 +15,16 @@ const supermarketLogos: { [key: string]: string } = {
   gadis: '/images/gadis.png',
   lidl: '/images/lidl.png',
   froiz: '/images/froiz.png',
-  otros: '/images/mercadona.jpg', // Usar una imagen por defecto para 'otros'
 };
 
 export default function SupermarketCard({ name, slug, colorClass }: SupermarketCardProps) {
   const href = slug === 'otros' ? '/otros' : `/super/${slug}`;
   
-  // Usar la imagen correspondiente al slug o una imagen por defecto
-  const logoPath = supermarketLogos[slug] || supermarketLogos.otros;
+  // Usar la imagen correspondiente al slug si existe
+  const logoPath = supermarketLogos[slug];
 
-  // Determinar si es el botón "otros" para mantener su estilo especial
-  const isOtrosButton = slug === 'otros';
+  // Determinar si es botón especial (otros, próximamente o cosas-varias)
+  const isOtrosButton = slug === 'otros' || slug === 'proximamente' || slug === 'cosas-varias';
 
   return (
     <Link 
@@ -33,8 +32,8 @@ export default function SupermarketCard({ name, slug, colorClass }: SupermarketC
       className={`block p-4 rounded-lg shadow-md transition-transform hover:scale-105 ${isOtrosButton ? colorClass : 'bg-white'}`}
     >
       <div className="flex flex-col justify-center items-center">
-        {/* Mostrar la imagen solo si NO es el botón "otros" */}
-        {!isOtrosButton ? (
+        {/* Mostrar la imagen solo si no es especial y existe logo */}
+        {!isOtrosButton && logoPath ? (
           <div className="w-32 h-32 relative flex items-center justify-center">
             <img 
               src={logoPath}
