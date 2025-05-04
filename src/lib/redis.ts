@@ -7,6 +7,7 @@ export interface ListItem {
   cantidad: number;
   comprado?: boolean; // comprado flag
   seccion?: string;  // sección asignada
+  link?: string; // link opcional
 }
 
 // --- Redis Client Initialization ---
@@ -102,7 +103,8 @@ export async function cleanList(listName: string): Promise<boolean> {
                     nombre: String(parsed.nombre),
                     cantidad: Number(parsed.cantidad || 1),
                     comprado: parsed.comprado ?? false,
-                    seccion: parsed.seccion ?? ''
+                    seccion: parsed.seccion ?? '',
+                    link: parsed.link ?? ''
                 });
             } catch (error) {
                 // Ignorar elementos que no se pueden procesar
@@ -193,7 +195,8 @@ export async function getSuperList(superSlug: string): Promise<ListItem[]> {
                 nombre: parsed.nombre ?? parsed.item ?? '',
                 cantidad: parsed.cantidad ?? 1,
                 comprado: parsed.comprado ?? false,
-                seccion: parsed.seccion ?? ''
+                seccion: parsed.seccion ?? '',
+                link: parsed.link ?? ''
             };
         });
     } catch (err) {
@@ -227,7 +230,8 @@ export async function addItem(superSlug: string, item: ListItem): Promise<boolea
       nombre: String(item.nombre),
       cantidad: Number(item.cantidad || 1),
       comprado: item.comprado ?? false,
-      seccion: item.seccion ?? ''
+      seccion: item.seccion ?? '',
+      link: item.link ?? ''
     };
     
     // Serializar correctamente a JSON
@@ -284,7 +288,8 @@ export async function updateItemByIndex(superSlug: string, index: number, item: 
             nombre: String(item.nombre),
             cantidad: Number(item.cantidad || 1),
             comprado: item.comprado ?? false,
-            seccion: item.seccion ?? ''
+            seccion: item.seccion ?? '',
+            link: item.link ?? ''
         };
         
         // Serializar correctamente a JSON
@@ -322,7 +327,8 @@ export async function replaceList(superSlug: string, items: ListItem[]): Promise
             nombre: String(item.nombre),
             cantidad: Number(item.cantidad || 1),
             comprado: item.comprado ?? false,
-            seccion: item.seccion ?? ''
+            seccion: item.seccion ?? '',
+            link: item.link ?? ''
         }));
         
         // Si el array está vacío, NO modificar la lista (protección anti-borrado)

@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     // Merge with backupItems to ensure seccion
     const merged = list.map(item => {
       const section = item.seccion || backupItems.find(b => b.item === item.nombre)?.seccion || '';
-      return { ...item, seccion: section };
+      return { ...item, seccion: section, link: item.link };
     });
     console.log('API GET /api/list/ merged with sections:', merged);
     return NextResponse.json(merged);
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     const superSlug = extractSuperSlugFromURL(request.url);
     
     // Get request body
-    const { nombre, cantidad = 1, seccion = '' } = await request.json();
+    const { nombre, cantidad = 1, seccion = '', link = '' } = await request.json();
     
     // Check for superSlug presence
     if (!superSlug) {
@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
       cantidad: Number(cantidad), // Asegurar que sea número
       comprado: false, // default comprado flag
       seccion: String(seccion) // sección proveniente del cliente
+      ,link: String(link)
     };
 
     // Use the new addItem function
@@ -137,7 +138,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Option 2: Updating a single item's properties (cantidad)
-    if (payload.itemId && payload.cantidad !== undefined) {
+    if (payload.itemId && typeof payload.cantidad === 'number') {
       const { itemId, cantidad } = payload;
 
       if (typeof cantidad !== 'number' || !Number.isInteger(cantidad) || cantidad < 1) {
@@ -155,10 +156,9 @@ export async function PATCH(request: NextRequest) {
       const updatedList = currentList.map(item => {
         if (item.id === itemId) {
           itemFound = true;
-          // Crear un objeto limpio para evitar problemas de serialización
+          // Preserve all fields including seccion, link and comprado
           const updatedItem: ListItem = {
-            id: item.id,
-            nombre: item.nombre,
+            ...item,
             cantidad: cantidad
           };
           return updatedItem;
@@ -181,8 +181,32 @@ export async function PATCH(request: NextRequest) {
       // Return the updated item
       const returnedItem = updatedList.find(item => item.id === itemId);
       return NextResponse.json(returnedItem);
+    }
 
-    } 
+    // Option: Updating link for an item
+    if (payload.itemId && payload.link !== undefined) {
+      const { itemId, link } = payload;
+      const currentList = await getSuperList(superSlug);
+      let found = false;
+      const updatedList = currentList.map(item => {
+        if (item.id === itemId) {
+          found = true;
+          return { ...item, link: String(link) };
+        }
+        return item;
+      });
+      if (!found) {
+        return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+      }
+      const success = await replaceList(superSlug, updatedList);
+      if (!success) {
+        return NextResponse.json({ error: 'Failed to update link' }, { status: 500 });
+      }
+      revalidatePath(`/super/${superSlug}`);
+      const updatedItem = updatedList.find(item => item.id === itemId);
+      return NextResponse.json(updatedItem);
+    }
+
     // Option 3: Updating the 'comprado' flag
     if (payload.itemId && payload.comprado !== undefined) {
       const { itemId, comprado } = payload;

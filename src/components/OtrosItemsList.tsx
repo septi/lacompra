@@ -8,6 +8,8 @@ interface ListItem {
   nombre: string;
   cantidad: number;
   comprado: boolean;
+  seccion: string;
+  link?: string;
 }
 
 // Tipo para los elementos con información de la tienda
@@ -205,21 +207,27 @@ export default function OtrosItemsList() {
               {/* Lista de elementos */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 mt-3">
                 {items.map(item => (
-                  <Link 
-                    key={item.id}
-                    href={href}
-                    className="text-gray-800 hover:text-blue-600 p-3 rounded-lg hover:bg-blue-50 flex items-center justify-between transition-all duration-200 border border-transparent hover:border-blue-100"
-                  >
-                    <span className="font-medium">
-                      {item.nombre}
-                    </span>
-                    {/* Cantidad */}
-                    {item.cantidad > 1 && (
-                      <span className="text-gray-700 font-bold ml-2 bg-gray-100 px-2 py-1 rounded-full text-sm">
-                        ×{item.cantidad}
-                      </span>
+                  <div key={item.id} className="p-3 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-100 hover:bg-blue-50">
+                    <Link
+                      href={href}
+                      className="flex items-center justify-between text-gray-800 hover:text-blue-600"
+                    >
+                      <span className="font-medium">{item.nombre}</span>
+                      {item.cantidad > 1 && (
+                        <span className="text-gray-700 font-bold ml-2 bg-gray-100 px-2 py-1 rounded-full text-sm">
+                          ×{item.cantidad}
+                        </span>
+                      )}
+                    </Link>
+                    {item.link && (
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-block text-blue-600 hover:text-blue-800 text-sm"
+                      >Link</a>
                     )}
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>

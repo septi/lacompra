@@ -59,12 +59,13 @@ interface ListItem {
     cantidad: number;
     comprado?: boolean; // comprado flag, default false
     seccion?: string;  // sección asignada
+    link?: string;     // link del item
 }
 
 interface SortableItemProps {
     id: string;
     item: ListItem;
-    onUpdateItem: (id: string, updates: { cantidad?: number }) => void;
+    onUpdateItem: (id: string, updates: { cantidad?: number; link?: string }) => void;
     onDeleteItem: (id: string) => void;
     onMoveItem: (id: string, targetSuper: string) => void;
     onToggleComprado: (id: string) => void;
@@ -88,7 +89,9 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
 
     // Estado para controlar el menú de acciones
     const [showActions, setShowActions] = useState(false);
-    
+    // Estado para editar link
+    const [linkValue, setLinkValue] = useState<string>(item.link || '');
+
     return (
         <li 
             ref={setNodeRef} 
@@ -105,6 +108,14 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
             >
                 {item.nombre}
             </div>
+            {item.link && (
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-2 text-blue-600 hover:text-blue-800 text-sm"
+              >Link</a>
+            )}
 
             {/* Cantidad */}
             <span className={`mx-2 px-2 font-bold rounded-full bg-gray-50 ${item.comprado ? 'line-through text-gray-400' : 'text-gray-700'}`}>{item.cantidad}</span>
@@ -181,6 +192,23 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
                             </div>
                         </div>
                     )}
+                    {/* Link Controls solo para Otros */}
+                    {superSlug.startsWith('otros-') && (
+                      <div className="p-2 border-t border-gray-100 flex items-center space-x-2">
+                        <input
+                            type="text"
+                            value={linkValue}
+                            onChange={e => setLinkValue(e.target.value)}
+                            placeholder="URL del item"
+                            className="flex-grow p-1 border border-gray-300 rounded focus:outline-none text-gray-900 text-sm"
+                        />
+                        <button
+                            onClick={() => { onUpdateItem(item.id, { link: linkValue }); setShowActions(false); }}
+                            className="px-2 py-1 bg-blue-600 text-white rounded text-sm"
+                            type="button"
+                        >Guardar</button>
+                      </div>
+                    )}
                 </div>
             )}
         </li>
@@ -230,7 +258,7 @@ export default function SuperListPage() {
             // Parse JSON as ListItem array
             const data = (await response.json()) as ListItem[];
             // Map items and include default values
-            const mapped: ListItem[] = data.map((i: ListItem) => ({ ...i, comprado: i.comprado ?? false, seccion: i.seccion ?? '' }));
+            const mapped: ListItem[] = data.map((i: ListItem) => ({ ...i, comprado: i.comprado ?? false, seccion: i.seccion ?? '', link: i.link ?? '' }));
             // Agrupar y ordenar automáticamente: frutería, sin sección, congelados
             const fruteria = mapped.filter((item: ListItem) => item.seccion === 'frutería');
             const noneSection = mapped.filter((item: ListItem) => !item.seccion);
@@ -456,7 +484,7 @@ const currentList = [...list];
         if (value.length > 0) {
             // Normalización robusta: elimina diacríticos y minúsculas
             const normalize = (str: string) =>
-                str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+                str.normalize('NFD').replace(/[ -]/g, '').replace(/[\u0300-\u036f]/g, '').toLowerCase();
             const normalized = normalize(value);
             const filtered = groceryItems
                 .filter(item => normalize(item).startsWith(normalized))
@@ -484,7 +512,7 @@ const currentList = [...list];
     };
 
     // Handler for updating item quantity
-    const handleUpdateItem = async (id: string, updates: { cantidad?: number }) => {
+    const handleUpdateItem = async (id: string, updates: { cantidad?: number; link?: string }) => {
         const prevList = [...list];
         setList(list => list.map(item => item.id === id ? { ...item, ...updates } : item));
         try {
