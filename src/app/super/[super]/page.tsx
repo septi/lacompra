@@ -83,7 +83,7 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
         <li 
             ref={(node) => { setNodeRef(node); containerRef.current = node; }} 
             style={style} 
-            className="flex items-center p-2 my-2 bg-white rounded-md shadow-md transition-all duration-200 relative"
+            className="flex items-center px-2 py-1 my-1 bg-white rounded-md shadow-md transition-all duration-200 relative"
         >
             {/* Checkbox */}
             <label htmlFor={`item-${id}`} className="flex flex-grow items-center text-lg cursor-pointer">
@@ -91,7 +91,7 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
                 id={`item-${id}`}
                 checked={item.comprado}
                 onChange={() => onToggleComprado(id)}
-                className="mr-3 cursor-pointer"
+                className="mr-2 cursor-pointer"
                 aria-label={`Marcar ${item.nombre} como comprado`}
               />
               {item.nombre}
@@ -118,7 +118,7 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
                 {...attributes} 
                 {...listeners} 
                 style={{ touchAction: 'none' }}
-                className="order-last ml-3 cursor-grab active:cursor-grabbing text-gray-600 hover:text-gray-800"
+                className="order-last ml-2 cursor-grab active:cursor-grabbing text-gray-600 hover:text-gray-800"
                 title="Arrastrar para reordenar"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -129,11 +129,11 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
             {/* Botón de acciones */}
             <Button
                 onClick={() => setShowActions(!showActions)}
-                className="ml-2 p-1 text-blue-600 hover:text-blue-800 focus:outline-none rounded-full hover:bg-blue-100 z-10"
+                className="ml-1 p-1 text-blue-600 hover:text-blue-800 focus:outline-none rounded-full hover:bg-blue-100 z-10"
                 aria-label="Acciones"
                 type="button"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
                 </svg>
             </Button>
@@ -585,7 +585,7 @@ const currentList = [...list];
                     items={orderedUnpurchased.map(item => item.id)}
                     strategy={verticalListSortingStrategy}
                 >
-                    <ul className="space-y-3">
+                    <ul className="space-y-1">
                         {orderedUnpurchased.map((item) => (
                             <SortableItem
                                 key={item.id}
