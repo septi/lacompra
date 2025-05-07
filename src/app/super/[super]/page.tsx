@@ -86,7 +86,7 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
             className="flex items-center px-2 py-1 my-1 bg-white rounded-md shadow-md transition-all duration-200 relative"
         >
             {/* Checkbox */}
-            <label htmlFor={`item-${id}`} className="flex flex-grow items-center text-lg cursor-pointer">
+            <label htmlFor={`item-${id}`} className="flex flex-grow items-center text-xl cursor-pointer">
               <Checkbox
                 id={`item-${id}`}
                 checked={item.comprado}
