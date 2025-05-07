@@ -8,53 +8,20 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import { CSS } from '@dnd-kit/utilities';
 import { FIXED_SUPERS } from '@/data/constants';
 import { backupItems } from '@/data/items';
+import { Input, Button, Checkbox, Select, Textarea } from '@/components/ui';
 
 // Lista de nombres para autocompletado
-const groceryItems: string[] = backupItems.map(b => b.item);
+// Usamos items predictivos cargados una vez desde Redis
+const groceryItems: string[] = [/* placeholder, se redefine en el componente */];
 
-// Definir colores para supermercados (clases de Tailwind)
-const superColors: { [key: string]: string } = {
-  mercadona: 'bg-green-600',
-  eroski: 'bg-red-600',
-  lidl: 'bg-blue-700',
-  gadis: 'bg-yellow-500',
-  froiz: 'bg-red-600',
-  otros: 'bg-gray-500',
-};
-
-// Función para obtener un color de fondo más suave basado en el color del supermercado
-const getSofterColor = (superSlug: string): string => {
-  // Mapeo de colores a versiones más suaves (HSL)
-  const colorMap: { [key: string]: string } = {
-    mercadona: 'hsl(142, 70%, 95%)',   // Verde suave
-    eroski: 'hsl(0, 70%, 95%)',        // Rojo suave
-    lidl: 'hsl(220, 70%, 95%)',        // Azul suave
-    gadis: 'hsl(50, 70%, 95%)',        // Amarillo suave
-    froiz: 'hsl(0, 70%, 95%)',         // Rojo suave
-    otros: 'hsl(0, 0%, 95%)',          // Gris suave
-    proximamente: 'hsl(271, 70%, 95%)',// Morado suave
-    'cosas-varias': 'hsl(340, 70%, 95%)',// Rosa suave
-  };
-  
-  // Si es un supermercado "otros-X", usar el color de "otros"
-  if (superSlug.startsWith('otros-')) {
-    return colorMap.otros;
-  }
-  
-  return colorMap[superSlug] || colorMap.otros;
-};
-
-// Helper to format supermarket name: remove 'otros-' prefix, replace hyphens with spaces and capitalize each word
+// Helper to format supermarket name: remove 'otros-' prefix, replace hyphens with spaces and capitalize words
 const formatSuperName = (slug: string): string => {
-    if (!slug) return '';
-    let base = slug;
-    if (slug.startsWith('otros-')) {
-        base = slug.substring(6);
-    }
-    return base
-        .split('-')
-        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ');
+  if (!slug) return '';
+  let base = slug.startsWith('otros-') ? slug.slice(6) : slug;
+  return base
+    .split('-')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
 };
 
 // Definir interfaces para los props
@@ -97,33 +64,52 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
     // Estado para editar link
     const [linkValue, setLinkValue] = useState<string>(item.link || '');
     // Permitir mover solo en supermercados principales
-    const canMove = ['mercadona','eroski','lidl','gadis','froiz'].includes(superSlug);
+    const canMove = ['mercadona','eroski','lidl','gadis','froiz','proximamente'].includes(superSlug);
+
+    // Ref para detectar clics fuera del menú
+    const containerRef = useRef<HTMLLIElement>(null);
+
+    useEffect(() => {
+      const handleClickOutside = (e: MouseEvent) => {
+        if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+          setShowActions(false);
+        }
+      };
+      if (showActions) document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showActions]);
 
     return (
         <li 
-            ref={setNodeRef} 
+            ref={(node) => { setNodeRef(node); containerRef.current = node; }} 
             style={style} 
             className="flex items-center p-2 my-2 bg-white rounded-md shadow-md transition-all duration-200 relative"
         >
             {/* Checkbox */}
-            <input type="checkbox" checked={item.comprado} onChange={() => onToggleComprado(id)} className="mr-2 w-5 h-5 rounded-md border-gray-300 text-green-500 focus:ring-0 shadow-inner" />
+            <label htmlFor={`item-${id}`} className="flex flex-grow items-center text-lg cursor-pointer">
+              <Checkbox
+                id={`item-${id}`}
+                checked={item.comprado}
+                onChange={() => onToggleComprado(id)}
+                className="mr-3 cursor-pointer"
+                aria-label={`Marcar ${item.nombre} como comprado`}
+              />
+              {item.nombre}
+            </label>
 
-            {/* Item Name - Ahora también es arrastrable */}
-            <div 
-                className={`flex-grow truncate font-medium ${item.comprado ? 'line-through text-gray-400' : 'text-gray-800'}`}
-                style={{ maxWidth: 'calc(100% - 110px)' }}
-            >
-                {item.nombre}
-            </div>
-            {item.link && (
+            {/* Botón de enlace para items con link */}
+            {((superSlug.startsWith('otros-')) || superSlug === 'cosas-varias') && item.link && (
               <a
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ml-2 text-blue-600 hover:text-blue-800 text-sm"
-              >Link</a>
+                style={{ background: 'var(--light-coral)', color: 'white' }}
+                className="px-2 py-1 rounded-full"
+                aria-label={`Abrir enlace de ${item.nombre}`}
+              >
+                Enlace
+              </a>
             )}
-
             {/* Cantidad */}
             <span className={`mx-2 px-2 font-bold rounded-full bg-gray-50 ${item.comprado ? 'line-through text-gray-400' : 'text-gray-700'}`}>{item.cantidad}</span>
 
@@ -141,7 +127,7 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
             </div>
 
             {/* Botón de acciones */}
-            <button
+            <Button
                 onClick={() => setShowActions(!showActions)}
                 className="ml-2 p-1 text-blue-600 hover:text-blue-800 focus:outline-none rounded-full hover:bg-blue-100 z-10"
                 aria-label="Acciones"
@@ -150,7 +136,7 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
                 </svg>
-            </button>
+            </Button>
 
             {/* Menú de acciones */}
             {showActions && (
@@ -159,38 +145,57 @@ function SortableItem({ id, item, onUpdateItem, onDeleteItem, onMoveItem, onTogg
                     <div className="flex items-center justify-between p-2 border-b border-gray-100">
                         <span className="mr-2 text-gray-700">Cantidad:</span>
                         <div className="flex items-center">
-                            <button
+                            <Button
                                 onClick={() => onUpdateItem(item.id, { cantidad: Math.max(1, item.cantidad - 1) })}
                                 className="px-2 py-1 bg-red-500 text-white rounded-full shadow-sm hover:shadow-md disabled:opacity-50 transition-all"
                                 disabled={item.cantidad <= 1}
                             >
                                 -
-                            </button>
+                            </Button>
                             <span className="mx-2 text-gray-700 font-medium">{item.cantidad}</span>
-                            <button
+                            <Button
                                 onClick={() => onUpdateItem(item.id, { cantidad: item.cantidad + 1 })}
                                 className="px-2 py-1 bg-green-500 text-white rounded-full shadow-sm hover:shadow-md transition-all"
                             >
                                 +
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
-                    {/* Link Controls solo para Otros */}
-                    {superSlug.startsWith('otros-') && (
+                    {canMove && (
+                      <div className="p-2 border-t border-gray-100">
+                        <label className="text-gray-700 font-medium text-sm">Mover a:</label>
+                        <Select
+                          defaultValue=""
+                          onChange={(e) => { onMoveItem(item.id, e.target.value); setShowActions(false); }}
+                          className="mt-1 w-full"
+                        >
+                          <option value="" disabled>Super</option>
+                          {['mercadona','eroski','lidl','gadis','froiz']
+                            .filter(s => s !== superSlug)
+                            .map(slug => (
+                              <option key={slug} value={slug}>{formatSuperName(slug)}</option>
+                            ))}
+                        </Select>
+                      </div>
+                    )}
+
+                    {/* Link Controls para Otros y Cosas-varias */}
+                    {(superSlug.startsWith('otros-') || superSlug === 'cosas-varias') && (
                       <div className="p-2 border-t border-gray-100 flex items-center space-x-2">
-                        <input
-                            type="text"
+                        <Textarea
+                            id={`link-${item.id}`}
                             value={linkValue}
                             onChange={e => setLinkValue(e.target.value)}
                             placeholder="URL del item"
                             className="flex-grow p-1 border border-gray-300 rounded focus:outline-none text-gray-900 text-sm"
                         />
-                        <button
+                        <Button
                             onClick={() => { onUpdateItem(item.id, { link: linkValue }); setShowActions(false); }}
-                            className="px-2 py-1 bg-blue-600 text-white rounded text-sm"
+                            className="px-2 py-1 text-white rounded text-sm"
+                            style={{ background: 'var(--yinmn-blue-dark)' }}
                             type="button"
-                        >Guardar</button>
+                        >Guardar</Button>
                       </div>
                     )}
                 </div>
@@ -205,8 +210,10 @@ export default function SuperListPage() {
     const router = useRouter();
     const superSlug = params.super as string; // Get slug from URL
     const isCosas = superSlug === 'cosas-varias';
-    // Permitir mover todos solo en supermercados principales (sin otros, proximamente ni cosas-varias)
-    const canMoveAll = ['mercadona','eroski','lidl','gadis','froiz'].includes(superSlug);
+    // Definir fuentes y objetivos permitidos para mover todos los artículos
+    const ALLOWED_SOURCES_MOVE_ALL = ['mercadona','eroski','lidl','gadis','froiz','proximamente'];
+    const MOVE_TARGETS = ['mercadona','eroski','lidl','gadis','froiz'];
+    const canMoveAll = ALLOWED_SOURCES_MOVE_ALL.includes(superSlug);
 
     const [list, setList] = useState<ListItem[]>([]);
     const [newItemName, setNewItemName] = useState('');
@@ -216,8 +223,27 @@ export default function SuperListPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [movingItemId, setMovingItemId] = useState<string | null>(null); // State for moving item
-    const [showPurchased, setShowPurchased] = useState(true);
+    const [showPurchased, setShowPurchased] = useState(false);
     
+    // Items predictivos desde Redis
+    const [predictiveItems, setPredictiveItems] = useState<string[]>([]);
+    useEffect(() => {
+      async function fetchPredictivos() {
+        try {
+          const res = await fetch('/api/list/items');
+          if (res.ok) {
+            const data = await res.json() as Array<{ nombre: string }>;
+            setPredictiveItems(data.map(i => i.nombre));
+          }
+        } catch (err) {
+          console.error('Error fetching predictivos:', err);
+        }
+      }
+      fetchPredictivos();
+    }, []);
+    // Usar predictiveItems para autocomplete
+    const groceryItems = predictiveItems;
+
     // Definir los sensores para drag and drop fuera del renderizado condicional
     const sensors = useSensors(
         useSensor(TouchSensor),
@@ -471,7 +497,7 @@ const currentList = [...list];
         if (!isCosas && value.length > 0) {
             const normalize = (str: string) =>
                 str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-            const filtered = groceryItems.filter(item => normalize(item).startsWith(normalize(value))).slice(0,8);
+            const filtered = predictiveItems.filter(item => normalize(item).startsWith(normalize(value))).slice(0,8);
             setSuggestions(filtered);
             setShowSuggestions(filtered.length > 0);
         } else {
@@ -532,12 +558,9 @@ const currentList = [...list];
             return (
                 <div className="text-center p-4 text-red-500">
                     {error}
-                    <button 
-                        onClick={fetchList}
-                        className="block mx-auto mt-2 px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none"
-                    >
+                    <Button onClick={fetchList} className="block mx-auto mt-2 px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none">
                         Reintentar
-                    </button>
+                    </Button>
                 </div>
             );
         }
@@ -580,16 +603,20 @@ const currentList = [...list];
             </DndContext>
             {purchasedItems.length > 0 && (
                 <details open={showPurchased} onToggle={e => setShowPurchased(e.currentTarget.open)} className="mt-6">
-                    <summary className="cursor-pointer font-semibold text-gray-800">Comprados ({purchasedItems.length})</summary>
+                    <summary className="cursor-pointer font-semibold" style={{ color: 'var(--foreground)' }}>Comprados ({purchasedItems.length})</summary>
                     <ul className="mt-2 space-y-3">
                         {purchasedItems.map(item => (
     <li key={item.id} className="flex items-center p-2 my-2 bg-white rounded-md shadow-md">
-        <input type="checkbox" checked={item.comprado} onChange={() => handleToggleComprado(item.id)} className="mr-2 w-5 h-5 rounded-md border-gray-300 text-green-500 focus:ring-0 shadow-inner" />
-        <div className="flex-grow truncate line-through text-gray-400" style={{ maxWidth: 'calc(100% - 90px)' }}>
-            {item.nombre}
-        </div>
+        <Checkbox
+          id={`item-${item.id}`}
+          checked={item.comprado}
+          onChange={() => handleToggleComprado(item.id)}
+          className="mr-3 cursor-pointer"
+          aria-label={`Marcar ${item.nombre} como comprado`}
+        />
+        <label htmlFor={`item-${item.id}`} className="flex flex-grow items-center text-lg cursor-pointer line-through text-gray-400">{item.nombre}</label>
         <span className="mx-2 px-2 font-bold rounded-full bg-gray-50 line-through text-gray-400">{item.cantidad}</span>
-        <button
+        <Button
             onClick={() => handleDeleteItem(item.id)}
             className="ml-2 p-1 text-red-600 hover:text-white hover:bg-red-500 rounded-full transition-colors"
             aria-label="Eliminar comprado"
@@ -598,7 +625,7 @@ const currentList = [...list];
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-        </button>
+        </Button>
     </li>
 ))}
                     </ul>
@@ -609,25 +636,21 @@ const currentList = [...list];
     };
 
     return (
-        <div className="max-w-3xl mx-auto p-3 md:p-5 lg:p-6" style={{
-            background: `linear-gradient(145deg, ${getSofterColor(superSlug)}, white)`
-        }}>
+        <div className="max-w-3xl mx-auto p-3 md:p-5 lg:p-6" style={{ background: 'var(--gradient-top)' }}>
             <div className="flex justify-end mb-4">
-                <button onClick={() => router.back()} className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none shadow-md">
+                <Button onClick={() => router.back()}>
                     ← Volver
-                </button>
+                </Button>
             </div>
-            <h1 className="text-2xl font-bold mb-3 text-gray-800">{superDisplayName}</h1>
+            <h1 className="cal-sans-regular text-2xl font-bold mb-3 text-gray-800">{superDisplayName}</h1>
             
             {/* Formulario para agregar nuevos artículos */}
             <form onSubmit={handleAddItem} className="mb-4 flex gap-2">
-                <div className="relative flex-1">
-                    <input 
-                        ref={inputRef}
-                        type="text" 
-                        value={newItemName} 
-                        onChange={handleInputChange}
-                        onFocus={() => {
+                <Input
+                    ref={inputRef}
+                    value={newItemName} 
+                    onChange={handleInputChange}
+                    onFocus={() => {
   if (newItemName.length === 0) {
     setSuggestions(groceryItems);
     setShowSuggestions(true);
@@ -635,7 +658,7 @@ const currentList = [...list];
     setShowSuggestions(suggestions.length > 0);
   }
 }}
-                        onClick={() => {
+                    onClick={() => {
   if (newItemName.length === 0) {
     setSuggestions(groceryItems);
     setShowSuggestions(true);
@@ -643,72 +666,63 @@ const currentList = [...list];
     setShowSuggestions(suggestions.length > 0);
   }
 }}
-                        onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
-                        placeholder="Agregar artículo" 
-                        className="w-full p-2 text-gray-700 border-0 rounded-xl shadow-[0_3px_10px_rgb(0,0,0,0.05),inset_0_0_0_1px_rgba(0,0,0,0.08)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:shadow-lg"
-                        autoComplete="off"
-                    />
-                    {/* Autocomplete solo si no es cosas-variadas */}
-                    {!isCosas && showSuggestions && (
-                        <ul className="absolute left-0 right-0 z-10 bg-white border-0 rounded-xl shadow-xl mt-1 max-h-48 overflow-y-auto">
-                            {suggestions.map((suggestion) => (
-                                <li
-                                    key={suggestion}
-                                    className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-gray-800 transition-colors duration-150"
-                                    onMouseDown={() => handleSuggestionClick(suggestion)}
-                                >
-                                    {suggestion}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-                <button 
-                    type="submit" 
-                    className="px-4 py-2 bg-blue-500 text-white rounded-full shadow-md hover:bg-blue-600 hover:shadow-lg focus:outline-none transition-all"
-                >
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
+                    placeholder="Agregar artículo" 
+                    className="w-full p-2 text-gray-700 border-0 rounded-xl shadow-[0_3px_10px_rgb(0,0,0,0.05),inset_0_0_0_1px_rgba(0,0,0,0.08)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:shadow-lg"
+                    autoComplete="off"
+                    aria-label="Nuevo artículo"
+                />
+                {/* Autocomplete solo si no es cosas-variadas */}
+                {!isCosas && showSuggestions && (
+                    <ul className="absolute left-0 right-0 z-50 bg-white border-0 rounded-xl shadow-xl mt-1 max-h-48 overflow-y-auto">
+                        {suggestions.map((suggestion) => (
+                            <li
+                                key={suggestion}
+                                className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-gray-800 transition-colors duration-150"
+                                onMouseDown={() => handleSuggestionClick(suggestion)}
+                            >
+                                {suggestion}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                <Button type="submit">
                     Añadir
-                </button>
+                </Button>
             </form>
             
             {renderListItems()}
             
             {/* Botón para mover todos los artículos a otro super */}
             {canMoveAll && (
-            <div className="mt-4">
-                <label className="text-gray-700 font-medium">Mover todo a: </label>
-                <div className="relative inline-block">
-                    <select 
-                        className="appearance-none bg-white border border-gray-300 rounded-md py-2 pl-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                        onChange={async (e) => {
-                            const targetSuper = e.target.value;
-                            if (!targetSuper) return;
-                            try {
-                                for (const item of list) {
-                                    await handleMoveItem(item.id, targetSuper);
-                                }
-                            } catch (error) {
-                                console.error('Error al mover todos los elementos:', error);
-                            }
-                            e.target.value = '';
-                        }}
-                        defaultValue=""
-                    >
-                        <option value="" disabled>Super</option>
-                        {FIXED_SUPERS.filter(s => s !== superSlug && s !== 'otros').map(slug => (
-                            <option key={slug} value={slug}>{slug.charAt(0).toUpperCase() + slug.slice(1)}</option>
-                        ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path d="M7.293 14.707a1 1 0 001.414 0l5-5a1 1 0 00-1.414-1.414L9 11.586 5.707 8.293a1 1 0 00-1.414 1.414l5 5z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            )}
+  <div className="mt-4">
+    <label className="text-gray-700 font-medium">Mover todo a: </label>
+    <div className="relative inline-block">
+      <Select
+        onChange={async (e) => {
+          const targetSuper = e.target.value;
+          if (!targetSuper) return;
+          try {
+            for (const item of list.filter(i => !i.comprado)) {
+              await handleMoveItem(item.id, targetSuper);
+            }
+          } catch (error) {
+            console.error('Error al mover todos los elementos:', error);
+          }
+          e.target.value = '';
+        }}
+        defaultValue=""
+      >
+        <option value="" disabled>Super</option>
+        {MOVE_TARGETS.filter(s => s !== superSlug).map(slug => (
+          <option key={slug} value={slug}>{slug.charAt(0).toUpperCase() + slug.slice(1)}</option>
+        ))}
+      </Select>
+    </div>
+  </div>
+)}
             {/* Botón para limpiar la lista */}
-            <button 
+            <Button 
                 onClick={() => {
                     if (window.confirm('¿Seguro que quieres borrar la lista? Esta acción no se puede deshacer.')) {
                         handleCleanList();
@@ -720,7 +734,7 @@ const currentList = [...list];
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
                 Borrar lista
-            </button>
+            </Button>
         </div>
     );
 }

@@ -267,14 +267,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ message: 'List is empty or item not found' }, { status: 404 });
     }
 
-    // Filtrar el elemento a eliminar y asegurar que todos los elementos sean objetos limpios
-    const updatedList = currentList
-      .filter(item => item.id !== itemId)
-      .map(item => ({
-        id: item.id,
-        nombre: item.nombre,
-        cantidad: item.cantidad
-      }));
+    // Preserve all item fields except the deleted one
+    const updatedList = currentList.filter(item => item.id !== itemId);
 
     // If the list length hasn't changed, the item wasn't found
     if (updatedList.length === currentList.length) {

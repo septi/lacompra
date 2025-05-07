@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { backupItems } from '@/data/items';
 import { ItemPredictivo } from '@/types/itemPredictivo';
+import { Input, Button, Textarea, Select } from '@/components/ui';
 
 export default function EditItemsPage() {
   const [itemPredictivos, setItemPredictivos] = useState<ItemPredictivo[]>([]);
@@ -142,7 +143,7 @@ export default function EditItemsPage() {
   if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
 
   return (
-    <div className="max-w-xl mx-auto p-6">
+    <div className="max-w-xl mx-auto p-6" style={{ background: 'var(--gradient-bottom-left)' }}>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Edición de Ítems Predictivos</h1>
         <div className="flex gap-2 items-center">
@@ -151,60 +152,56 @@ export default function EditItemsPage() {
         </div>
       </div>
       <div className="flex gap-2 mb-4">
-        <input
+        <Input
           type="text"
           value={newItem}
-          onChange={e => setNewItem(e.target.value)}
+          onChange={(e) => setNewItem(e.target.value)}
           placeholder="Nuevo ítem predictivo"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none text-gray-800 placeholder-gray-500"
+          className="flex-1"
         />
-        <button
-          onClick={handleAdd}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
-        >
+        <Button onClick={handleAdd}>
           Añadir
-        </button>
+        </Button>
       </div>
       <ul className="space-y-2">
         {itemPredictivos.map(i => (
           <li key={i.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md space-x-4">
-            <textarea
+            <Textarea
               value={editValues[i.nombre] ?? i.nombre}
-              onChange={e => handleEditChange(i.nombre, e.target.value)}
+              onChange={(e) => handleEditChange(i.nombre, e.target.value)}
               rows={2}
-              className="flex-1 px-2 py-1 border border-transparent rounded-md focus:border-blue-400 bg-white text-gray-800 resize-none min-h-[2.5rem] max-h-32 leading-snug"
-              style={{ overflow: 'auto' }}
+              className="flex-1"
             />
-            <button
+            <Button
+              variant="outline"
               onClick={() => handleEditAccept(i.nombre)}
-              className="ml-1 text-green-600 hover:text-white hover:bg-green-500 rounded-full p-1 transition-colors"
+              className="ml-1 p-1 rounded-full text-green-600 hover:bg-green-500 hover:text-white"
               aria-label="Aceptar cambio"
-              type="button"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-            </button>
-            <select
+            </Button>
+            <Select
               value={i.seccion}
-              onChange={e => handleSectionChange(i, e.target.value)}
-              className="px-1 py-0.5 border border-gray-300 rounded text-gray-800 text-xs min-w-0 w-auto max-w-[80px]"
+              onChange={(e) => handleSectionChange(i, e.target.value)}
+              className="text-xs min-w-0 w-auto max-w-[80px]"
               style={{ flex: 'none' }}
             >
               <option value="">—</option>
-              <option value="frutería">frutería</option>
-              <option value="congelados">congelados</option>
-            </select>
-            <button
+              <option value="frutería">Frutería</option>
+              <option value="congelados">Congelados</option>
+            </Select>
+            <Button
+              variant="outline"
               onClick={() => handleDelete(i)}
-              className="ml-1 text-red-600 hover:text-white hover:bg-red-500 rounded-full p-1 transition-colors"
+              className="ml-1 p-1 rounded-full text-red-600 hover:bg-red-500 hover:text-white"
               aria-label="Eliminar"
-              type="button"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </Button>
           </li>
         ))}
       </ul>

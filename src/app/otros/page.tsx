@@ -2,79 +2,22 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Input, Button } from '@/components/ui';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
 import OtrosItemsList from '@/components/OtrosItemsList';
 
 const API_URL = '/api/otros/tiendas';
 
-// Colores para asignar aleatoriamente a las tiendas
-const colorOptions = [
-  'bg-purple-600 hover:bg-purple-700',
-  'bg-pink-600 hover:bg-pink-700',
-  'bg-indigo-600 hover:bg-indigo-700',
-  'bg-teal-600 hover:bg-teal-700',
-  'bg-cyan-600 hover:bg-cyan-700',
-  'bg-orange-600 hover:bg-orange-700',
-  'bg-amber-600 hover:bg-amber-700',
-  'bg-lime-600 hover:bg-lime-700',
-  'bg-emerald-600 hover:bg-emerald-700',
-  'bg-sky-600 hover:bg-sky-700',
-  'bg-rose-600 hover:bg-rose-700',
-  'bg-fuchsia-600 hover:bg-fuchsia-700',
-];
-
-// Almacén local de colores asignados
-const tiendaColors: Record<string, string> = {};
-
-// Función para obtener un color aleatorio
-function getRandomColor(tiendaSlug: string): string {
-  // Si ya tiene un color asignado, devolverlo
-  if (tiendaColors[tiendaSlug]) {
-    return tiendaColors[tiendaSlug];
-  }
-  
-  // Asignar un color aleatorio
-  const randomIndex = Math.floor(Math.random() * colorOptions.length);
-  const color = colorOptions[randomIndex];
-  tiendaColors[tiendaSlug] = color;
-  
-  // Guardar en localStorage para persistencia
-  try {
-    localStorage.setItem(`tiendaColor_${tiendaSlug}`, color);
-  } catch (e) {
-    console.warn('No se pudo guardar el color en localStorage');
-  }
-  
-  return color;
-}
-
 export default function OtrosPage() {
+  const router = useRouter();
   const { data: tiendas, error: swrError, isLoading, mutate } = useSWR<string[]>(API_URL, fetcher);
 
   const [newTiendaName, setNewTiendaName] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   
-  // Cargar colores guardados al iniciar
-  useEffect(() => {
-    try {
-      if (tiendas) {
-        tiendas.forEach(tiendaSlug => {
-          const savedColor = localStorage.getItem(`tiendaColor_${tiendaSlug}`);
-          if (savedColor) {
-            tiendaColors[tiendaSlug] = savedColor;
-          } else {
-            // Si no tiene color guardado, asignar uno
-            getRandomColor(tiendaSlug);
-          }
-        });
-      }
-    } catch (e) {
-      console.warn('Error al cargar colores de localStorage');
-    }
-  }, [tiendas]);
-
   const handleAddTienda = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTiendaName.trim()) return;
@@ -139,35 +82,28 @@ export default function OtrosPage() {
   const displayError = actionError || (swrError ? swrError.message : null);
 
   return (
-    <div className="container mx-auto p-6 max-w-lg bg-gray-50 min-h-screen">
+    <div className="container mx-auto p-6 max-w-lg min-h-screen" style={{ background: 'var(--gradient-top)' }}>
       <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800 drop-shadow-sm">Otras Tiendas</h1>
-          <Link 
-            href="/" 
-            className="text-blue-600 hover:text-blue-800 font-medium px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
-          >
+          <Button type="button" onClick={() => router.back()}>
             ← Volver
-          </Link>
+          </Button>
       </div>
 
       <form onSubmit={handleAddTienda} className="mb-8">
         <div className="flex gap-2 bg-white p-3 rounded-lg shadow-md">
-          <input
+          <Input
             type="text"
             value={newTiendaName}
             onChange={(e) => setNewTiendaName(e.target.value)}
             placeholder="Nombre de la nueva tienda"
-            className="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 placeholder-gray-600 font-medium"
             required
-            autoComplete="off" // Desactivar el autocompletado
+            autoComplete="off"
+            className="flex-grow placeholder-gray-600 font-medium"
           />
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-all duration-200 shadow-sm hover:shadow disabled:opacity-50 transform hover:scale-105"
-            disabled={!newTiendaName.trim()}
-          >
-            + Añadir
-          </button>
+          <Button type="submit" disabled={!newTiendaName.trim()}>
+            Añadir
+          </Button>
         </div>
       </form>
 
@@ -208,12 +144,12 @@ export default function OtrosPage() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             {tiendas.map((tiendaSlug) => {
-              const colorClass = getRandomColor(tiendaSlug);
               return (
                 <div key={tiendaSlug} className="relative group">
-                  <Link 
-                    href={`/super/otros-${tiendaSlug}`} 
-                    className={`block p-6 rounded-lg shadow-md transition-transform hover:scale-105 ${colorClass} text-center`}
+                  <Link
+                    href={`/super/otros-${tiendaSlug}`}
+                    className="block p-6 rounded-lg shadow-md transition-transform hover:scale-105 text-center"
+                    style={{ background: 'var(--gradient-right)', color: 'white' }}
                   >
                     <h2 className="text-2xl font-bold text-white text-center capitalize">
                       {tiendaSlug.replace(/-/g, ' ')}

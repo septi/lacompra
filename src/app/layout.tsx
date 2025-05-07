@@ -46,9 +46,12 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-black`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-black raleway-400`}
       >
         <div className="min-h-screen bg-white">
           {children}

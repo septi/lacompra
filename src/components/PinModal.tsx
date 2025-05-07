@@ -2,6 +2,7 @@
 
 // Componente modal para introducir o solicitar un PIN de acceso
 import { useState } from 'react';
+import { Input, Button } from '@/components/ui';
 
 interface PinModalProps {
   onPinVerified: () => void;
@@ -30,22 +31,23 @@ export default function PinModal({ onPinVerified }: PinModalProps) {
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Introduce el PIN</h2>
         <form onSubmit={handleSubmit}>
-          <input
+          <Input
             type="password"
             value={pin}
             onChange={(e) => setPin(e.target.value)}
             maxLength={6}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md mb-4 text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
+            className="mb-4 text-center text-lg tracking-widest font-medium"
             placeholder="******"
             autoFocus
+            aria-label="PIN"
           />
           {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-          <button
+          <Button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out"
+            className="w-full"
           >
             Entrar
-          </button>
+          </Button>
         </form>
       </div>
     </div>

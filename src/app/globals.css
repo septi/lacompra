@@ -1,8 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import "tailwindcss";
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --yinmn-blue: #355070ff;
+  --yinmn-blue-dark: #4a709eff;
+  --chinese-violet: #6d597aff;
+  --china-rose: #b56576ff;
+  --light-coral: #e56b6fff;
+  --buff: #eaac8bff;
+  --gradient-top: linear-gradient(0deg, var(--yinmn-blue), var(--chinese-violet), var(--china-rose), var(--light-coral), var(--buff));
+  --gradient-right: linear-gradient(90deg, var(--yinmn-blue), var(--chinese-violet), var(--china-rose), var(--light-coral), var(--buff));
+  --gradient-bottom: linear-gradient(180deg, var(--yinmn-blue), var(--chinese-violet), var(--china-rose), var(--light-coral), var(--buff));
+  --gradient-left: linear-gradient(270deg, var(--yinmn-blue), var(--chinese-violet), var(--china-rose), var(--light-coral), var(--buff));
+  --gradient-top-right: linear-gradient(45deg, var(--yinmn-blue), var(--chinese-violet), var(--china-rose), var(--light-coral), var(--buff));
+  --gradient-bottom-right: linear-gradient(135deg, var(--yinmn-blue), var(--chinese-violet), var(--china-rose), var(--light-coral), var(--buff));
+  --gradient-top-left: linear-gradient(225deg, var(--yinmn-blue), var(--chinese-violet), var(--china-rose), var(--light-coral), var(--buff));
+  --gradient-bottom-left: linear-gradient(315deg, var(--yinmn-blue), var(--chinese-violet), var(--china-rose), var(--light-coral), var(--buff));
+  --gradient-radial: radial-gradient(circle, var(--yinmn-blue), var(--chinese-violet), var(--china-rose), var(--light-coral), var(--buff));
 }
 
 @theme inline {
@@ -12,15 +31,78 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  button {
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium shadow-sm transition-colors;
+    background-color: var(--yinmn-blue);
+    color: white;
   }
+  button:hover {
+    background-color: var(--yinmn-blue-dark);
+  }
+  button:focus {
+    outline: 2px solid var(--yinmn-blue);
+    outline-offset: 2px;
+  }
+  button.outline {
+    @apply bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-100;
+  }
+  a.button {
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium transition-colors;
+    background-color: var(--yinmn-blue);
+    color: white;
+  }
+  a.button:hover {
+    background-color: var(--yinmn-blue-dark);
+  }
+  input, textarea, select {
+    @apply w-full rounded-lg px-3 py-2 transition-colors;
+    border: 1px solid var(--china-rose);
+    background-color: white;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: 2px solid var(--yinmn-blue);
+    outline-offset: 2px;
+  }
+}
+
+/* Override form and option text colors */
+input,
+textarea,
+select,
+option {
+  color: var(--foreground) !important;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Tipografía Cal Sans para títulos */
+.cal-sans-regular {
+  font-family: "Cal Sans", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Tipografía Raleway para el resto de textos */
+.raleway-100 {
+  font-family: "Raleway", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 100;
+  font-style: normal;
+}
+.raleway-400 {
+  font-family: "Raleway", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+.raleway-700 {
+  font-family: "Raleway", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
 }

@@ -36,6 +36,9 @@ export default function AllItemsList() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Mostrar solo supermercados fijos seleccionados
+  const allowedSuperSlugs = ['mercadona','eroski','lidl','gadis','froiz'];
+
   // Función para obtener todos los elementos de todas las listas
   const fetchAllItems = async () => {
     setIsLoading(true);
@@ -111,18 +114,21 @@ export default function AllItemsList() {
   const groupedItems = useMemo(() => {
     const groups: Record<string, ItemWithSuper[]> = {};
     
-    allItems.filter(item => !item.comprado).forEach(item => {
-      // Crear una clave única para cada supermercado/tienda
-      const key = item.superSlug === 'otros' && item.tiendaName 
-        ? `otros-${item.tiendaName}` 
-        : item.superSlug;
-      
-      if (!groups[key]) {
-        groups[key] = [];
-      }
-      
-      groups[key].push(item);
-    });
+    // Filtrar por no comprado y solo tiendas permitidas
+    allItems
+      .filter(item => !item.comprado && allowedSuperSlugs.includes(item.superSlug))
+      .forEach(item => {
+        // Crear una clave única para cada supermercado/tienda
+        const key = item.superSlug === 'otros' && item.tiendaName 
+          ? `otros-${item.tiendaName}` 
+          : item.superSlug;
+        
+        if (!groups[key]) {
+          groups[key] = [];
+        }
+        
+        groups[key].push(item);
+      });
     
     // Convertir el objeto a un array ordenado por nombre de supermercado
     return Object.entries(groups).sort((a, b) => {
@@ -137,27 +143,8 @@ export default function AllItemsList() {
     fetchAllItems();
   }, []);
 
-  // Renderizar un botón para el supermercado
-  const renderSuperButton = (superSlug: string, tiendaName?: string) => {
-    const color = superColors[superSlug] || superColors.otros;
-    let displayName;
-    
-    if (superSlug === 'otros' && tiendaName) {
-      // Para tiendas personalizadas, mostrar el nombre de la tienda
-      displayName = tiendaName.charAt(0).toUpperCase() + tiendaName.slice(1);
-    } else {
-      // Para supermercados fijos, mostrar el nombre formateado
-      displayName = superSlug.charAt(0).toUpperCase() + superSlug.slice(1);
-    }
-    
-    return (
-      <span 
-        className={`${color} text-white font-bold rounded-lg px-4 py-2 text-md inline-block w-full text-center shadow-sm transition-all duration-200 hover:shadow transform hover:scale-105`}
-      >
-        {displayName}
-      </span>
-    );
-  };
+  // Formatear nombre de supermercado
+  const formatSuperName = (slug: string) => slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
   if (isLoading) {
     return (
@@ -190,57 +177,32 @@ export default function AllItemsList() {
   }
 
   return (
-    <>
-      <div className="mt-8 mb-4">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center drop-shadow-sm">Todos los Artículos</h2>
- 
-        {allItems.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <p className="text-gray-600 text-lg">No hay elementos en ninguna lista</p>
-            <p className="text-gray-500 mt-2">Añade artículos a tus listas para verlos aquí.</p>
-          </div>
-        ) : (
-          <div className="max-w-xl mx-auto">
-            {groupedItems.map(([key, items]) => {
-              // Determinar si es un supermercado fijo o una tienda personalizada
-              const isTiendaPersonalizada = key.startsWith('otros-');
-              const superSlug = isTiendaPersonalizada ? 'otros' : key;
-              const tiendaName = isTiendaPersonalizada ? key.substring(6) : undefined;
-              const href = `/super/${superSlug}${tiendaName ? `-${tiendaName}` : ''}`;
-              
-              return (
-                <div key={key} className="mb-8 bg-white rounded-lg shadow-md p-4 transition-all duration-300 hover:shadow-lg">
-                  {/* Encabezado del supermercado */}
-                  <Link href={href} className="block mb-3">
-                    {renderSuperButton(superSlug, tiendaName)}
+    <div className="mt-8 mb-4">
+      <h2 className="cal-sans-regular text-2xl font-bold text-foreground mb-4">Todos los Artículos</h2>
+      <div className="max-w-3xl mx-auto grid grid-cols-2 gap-4">
+        {groupedItems.map(([slug, items]) => (
+          <div key={slug} className="mb-4">
+            <Link href={`/super/${slug}`}> 
+              <h3 className="text-lg font-semibold text-foreground mb-2 cursor-pointer">{formatSuperName(slug)}</h3>
+            </Link>
+            <ul className="space-y-1">
+              {items.map(item => (
+                <li key={item.id} className="text-foreground overflow-hidden whitespace-nowrap truncate">
+                  <Link href={`/super/${slug}`} className="block hover:underline overflow-hidden whitespace-nowrap truncate">
+                    {item.nombre} ({item.cantidad})
                   </Link>
-                  
-                  {/* Lista de elementos */}
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-2">
-  {items.map(item => (
-    <Link 
-      key={`${key}-${item.id}`}
-      href={href}
-      className="text-gray-800 hover:text-blue-600 px-2 py-1 rounded flex items-center min-h-8 transition-all duration-150 border border-transparent hover:bg-blue-50 hover:border-blue-100"
-      style={{ fontSize: '1rem', lineHeight: '1.2', minHeight: '2.25rem' }}
-    >
-      <span className="flex-1 font-medium truncate">
-        {item.nombre}
-      </span>
-    </Link>
-  ))}
-</div>
-                </div>
-              );
-            })}
+                </li>
+              ))}
+            </ul>
           </div>
-        )}
+        ))}
       </div>
-      <div className="flex justify-center mb-6">
+      {/* Botón Edición predictivo */}
+      <div className="flex justify-center mt-6 mb-6">
         <Link href="/editar-items" className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-md transition inline-block">
           Edición predictivo
         </Link>
       </div>
-    </>
+    </div>
   );
 }

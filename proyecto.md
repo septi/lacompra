@@ -4,6 +4,7 @@
 - Framework: Next.js 15
 - UI Library: React 18
 - Styling: Tailwind CSS 3
+- PostCSS: @tailwindcss/postcss y Autoprefixer
 - Routing: App Router
 - Language: TypeScript
 - Linting: ESLint (config next)
@@ -19,6 +20,8 @@
 - next.config.ts: Configuración de Next.js.
 - tsconfig.json: Configuración de TypeScript.
 - tailwind.config.ts: Configuración de Tailwind CSS.
+- postcss.config.mjs: Configuración de PostCSS para Turbopack.
+- postcss.config.js: Configuración de PostCSS para Next.js.
 - package.json: Dependencias y scripts (incluye @dnd-kit/core, @dnd-kit/sortable, next-pwa, tailwindcss).
 - .eslintrc.json: Configuración de ESLint.
 - proyecto.md: Documentación técnica y memoria del estado actual.
@@ -37,6 +40,12 @@
     - constants.ts: Constantes (ej. FIXED_SUPERS).
   - components/
     - AllItemsList.tsx: Vista consolidada de todos los ítems.
+  - ui/
+    - Button.tsx: Componente botón genérico con variantes primary/outline.
+    - Input.tsx: Componente de campo de texto unificado.
+    - Textarea.tsx: Componente de área de texto unificado.
+    - Select.tsx: Componente de lista desplegable unificado.
+    - index.ts: Exportador de todos los componentes UI.
 </estructura_proyecto>
 
 <consideraciones_tecnicas_importantes>
@@ -114,5 +123,13 @@ La aplicación está configurada para usar siempre el tema claro mediante:
 - Imágenes de Supermercados: logotipos sin fondo, excepto Otros.
 - Supermercados Soportados: Mercadona, Eroski, Gadis, Lidl, Froiz, Otros y Próximamente (sin icono).
 </interfaz_usuario>
+
+<color_palette>
+- yinmn-blue: #355070ff
+- chinese-violet: #6d597aff
+- china-rose: #b56576ff
+- light-coral: #e56b6fff
+- buff: #eaac8bff
+</color_palette>
 
 </proyecto_lacompra>
