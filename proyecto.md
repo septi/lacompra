@@ -49,6 +49,14 @@
 </estructura_proyecto>
 
 <consideraciones_tecnicas_importantes>
+<configuracion_dominio_personalizado>
+- Para el correcto funcionamiento del dominio personalizado (lacompra.septi.es) se requiere una configuración específica de los MIME types.
+- Solución implementada: Se creó un archivo vercel.json con headers específicos para cada tipo de recurso, especialmente para scripts JavaScript.
+- Los archivos JavaScript se sirven explícitamente con Content-Type: application/javascript para evitar problemas de MIME type.
+- Esto soluciona el error: "Refused to execute script because its MIME type ('text/html') is not executable".
+- Componentes del servidor de React (RSC) requieren esta configuración correcta para funcionar en dominios personalizados.
+</configuracion_dominio_personalizado>
+
 <rutas_api_nextjs_15>
 - Problema con Parámetros Dinámicos: En Next.js 15, intentar acceder a params.paramName causa el error params should be awaited before using its properties.
 - Solución implementada: Extraer los parámetros directamente de la URL en lugar de usar el objeto params.
