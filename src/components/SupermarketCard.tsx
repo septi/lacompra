@@ -16,15 +16,15 @@ const supermarketLogos: { [key: string]: string } = {
   froiz: '/images/froiz.png',
 };
 
-// Mapping slugs to palette gradients
-const gradientMap: Record<string, string> = {
-  mercadona: 'var(--gradient-top)',
-  eroski: 'var(--gradient-right)',
-  lidl: 'var(--gradient-bottom)',
-  gadis: 'var(--gradient-left)',
-  froiz: 'var(--gradient-top-right)',
-  proximamente: 'var(--gradient-bottom-right)',
-  'cosas-varias': 'var(--gradient-top-left)',
+// Mapping slugs to color variables
+const colorMap: Record<string, string> = {
+  mercadona: 'var(--mercadona)',
+  eroski: 'var(--eroski)',
+  lidl: 'var(--lidl)',
+  gadis: 'var(--gadis)',
+  froiz: 'var(--froiz)',
+  otros: 'var(--otros)',
+  proximamente: 'var(--proximamente)',
 };
 
 export default function SupermarketCard({ name, slug }: SupermarketCardProps) {
@@ -33,33 +33,31 @@ export default function SupermarketCard({ name, slug }: SupermarketCardProps) {
   // Usar la imagen correspondiente al slug si existe
   const logoPath = supermarketLogos[slug];
 
-  const background = gradientMap[slug] || 'var(--gradient-radial)';
-  const noGradientSupers = ['mercadona','eroski','lidl','gadis','froiz'];
-  const finalBackground = noGradientSupers.includes(slug) ? 'transparent' : background;
+  // Obtener el color asociado al supermercado
+  const color = colorMap[slug] || 'var(--neutral-500)';
 
   return (
     <Link
       href={href}
-      className="block p-4 rounded-lg shadow-md transition-transform hover:scale-105"
-      style={{ background: finalBackground }}
+      className="card flex flex-col justify-center items-center p-4 bg-white hover:shadow-md transition-all duration-200"
+      style={{ borderTop: `3px solid ${color}` }}
     >
-      <div className="flex flex-col justify-center items-center">
-        {/* Mostrar la imagen solo si no es especial y existe logo */}
-        {logoPath ? (
-          <div className="w-32 h-32 relative flex items-center justify-center">
-            <img 
-              src={logoPath}
-              alt={name}
-              className="max-w-full max-h-full object-contain"
-              style={{ width: '100%', height: 'auto' }}
-            />
-          </div>
-        ) : (
-          <div className="w-32 h-32 flex items-center justify-center">
-            <h2 className="cal-sans-regular text-2xl font-bold text-white text-center">{name}</h2>
-          </div>
-        )}
-      </div>
+      {/* Mostrar la imagen solo si existe logo */}
+      {logoPath ? (
+        <div className="w-24 h-24 sm:w-28 sm:h-28 relative flex items-center justify-center my-2">
+          <img 
+            src={logoPath}
+            alt={name}
+            className="max-w-full max-h-full object-contain"
+            style={{ width: '100%', height: 'auto' }}
+          />
+        </div>
+      ) : (
+        <div className="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center bg-neutral-100 rounded-full mb-2">
+          <span className="text-2xl font-bold" style={{ color }}>{name.charAt(0)}</span>
+        </div>
+      )}
+      <h2 className="text-lg font-medium text-neutral-800 mt-2 text-center">{name}</h2>
     </Link>
   );
 }

@@ -57,15 +57,17 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 md:p-8" style={{ background: 'var(--gradient-bottom)' }}>
+    <div className="min-h-screen p-4 sm:p-6 md:p-8 bg-neutral-50">
       {showPinModal ? (
         <PinModal onPinVerified={handlePinVerified} />
       ) : (
         <main className="max-w-4xl mx-auto">
-          {/* Espacio superior */}
-          <div className="mb-6"></div>
+          <header className="text-center mb-8 mt-4">
+            <h1 className="text-3xl font-bold mb-2">LaCompra</h1>
+            <p className="text-neutral-600">Tu lista de la compra personal</p>
+          </header>
           
-          <div className="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-12">
             {FIXED_SUPERS.map((superSlug) => (
               <SupermarketCard
                 key={superSlug}
@@ -75,12 +77,11 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Lista de todos los elementos de todas las listas (ahora al final) */}
-          <div className="max-w-2xl mx-auto">
+          {/* Lista de todos los elementos de todas las listas */}
+          <div className="max-w-2xl mx-auto bg-white rounded-lg p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-4">Todos los artículos</h2>
             <AllItemsList />
           </div>
-        
-
         </main>
       )}
     </div>

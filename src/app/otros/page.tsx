@@ -82,12 +82,24 @@ export default function OtrosPage() {
   const displayError = actionError || (swrError ? swrError.message : null);
 
   return (
-    <div className="container mx-auto p-6 max-w-lg min-h-screen" style={{ background: 'var(--gradient-top)' }}>
+    <div className="container mx-auto p-6 max-w-lg min-h-screen">
       <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800 drop-shadow-sm">Otras Tiendas</h1>
-          <Button type="button" onClick={() => router.back()}>
+          <button 
+            type="button" 
+            onClick={() => router.back()} 
+            style={{
+              backgroundColor: '#2563eb',
+              color: 'white',
+              fontWeight: 'bold',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+            }}
+          >
             ← Volver
-          </Button>
+          </button>
       </div>
 
       <form onSubmit={handleAddTienda} className="mb-8">
@@ -101,9 +113,22 @@ export default function OtrosPage() {
             autoComplete="off"
             className="flex-grow placeholder-gray-600 font-medium"
           />
-          <Button type="submit" disabled={!newTiendaName.trim()}>
+          <button 
+            type="submit" 
+            disabled={!newTiendaName.trim()}
+            style={{
+              backgroundColor: '#2563eb',
+              color: 'white',
+              fontWeight: 'bold',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+              opacity: !newTiendaName.trim() ? '0.7' : '1'
+            }}
+          >
             Añadir
-          </Button>
+          </button>
         </div>
       </form>
 
@@ -141,40 +166,37 @@ export default function OtrosPage() {
       )}
 
       {!isLoading && tiendas && tiendas.length > 0 && (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            {tiendas.map((tiendaSlug) => {
-              return (
-                <div key={tiendaSlug} className="relative group">
-                  <Link
-                    href={`/super/otros-${tiendaSlug}`}
-                    className="block p-6 rounded-lg shadow-md transition-transform hover:scale-105 text-center"
-                    style={{ background: 'var(--gradient-right)', color: 'white' }}
-                  >
-                    <h2 className="text-2xl font-bold text-white text-center capitalize">
-                      {tiendaSlug.replace(/-/g, ' ')}
-                    </h2>
-                  </Link>
-                  <button
-                    onClick={() => {
-                      if (confirm(`¿Estás seguro de eliminar la tienda ${tiendaSlug.replace(/-/g, ' ')}?`)) {
-                        handleDeleteTienda(tiendaSlug);
-                      }
-                    }}
-                    className="absolute top-2 right-2 text-white opacity-70 hover:opacity-100 text-xl"
-                    aria-label={`Eliminar ${tiendaSlug}`}
-                  >
-                    🗑️
-                  </button>
+        <div className="grid grid-cols-1 gap-6">
+          {tiendas && tiendas.length > 0 ? (
+            tiendas.map((tienda) => (
+              <Link 
+                key={tienda} 
+                href={`/super/${tienda}`}
+                className="relative p-6 rounded-xl bg-white shadow-sm border border-neutral-200 block transition-all duration-200 hover:shadow-md hover:border-blue-200"
+              >
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold text-neutral-800 capitalize">{tienda.replace(/-/g, ' ')}</h2>
+                  
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </div>
-              );
-            })}
-          </div>
-          
-          {/* Lista de todos los artículos de todas las tiendas */}
-          <OtrosItemsList />
-        </>
+              </Link>
+            ))
+          ) : (
+            <div className="text-center p-6 bg-white shadow-sm rounded-lg border border-neutral-200">
+              {isLoading ? (
+                <p>Cargando tiendas...</p>
+              ) : (
+                <p>No hay tiendas personalizadas. Añade tu primera tienda!</p>
+              )}
+            </div>
+          )}
+        </div>
       )}
+      
+      {/* Lista de todos los artículos de todas las tiendas */}
+      <OtrosItemsList />
     </div>
   );
 }

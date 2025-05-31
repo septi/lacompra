@@ -47,8 +47,43 @@ export default function OtrosItemsList() {
       console.warn('Error al acceder a localStorage:', e);
     }
     
-    // Color por defecto si no se encuentra
-    return 'bg-gray-500 hover:bg-gray-600';
+    // Colores predefinidos que garantizan buen contraste con texto blanco
+    const colorOptions = [
+      'bg-blue-600 hover:bg-blue-700',
+      'bg-purple-600 hover:bg-purple-700',
+      'bg-emerald-600 hover:bg-emerald-700',
+      'bg-violet-600 hover:bg-violet-700',
+      'bg-pink-600 hover:bg-pink-700',
+      'bg-indigo-600 hover:bg-indigo-700',
+      'bg-cyan-600 hover:bg-cyan-700',
+      'bg-teal-600 hover:bg-teal-700',
+      'bg-rose-600 hover:bg-rose-700',
+    ];
+
+    // Mapear tiendas a colores específicos (todos oscuros para buen contraste)
+    const colorMapping: Record<string, string> = {
+      'leroy-merlin': 'bg-green-700 hover:bg-green-800',
+      'ikea': 'bg-blue-700 hover:bg-blue-800',
+      'decathlon': 'bg-blue-600 hover:bg-blue-700',
+      'ferreteria': 'bg-orange-700 hover:bg-orange-800',
+      'drogueria': 'bg-purple-700 hover:bg-purple-800',
+      'farmacia': 'bg-emerald-700 hover:bg-emerald-800',
+      'talat': 'bg-rose-700 hover:bg-rose-800',
+      'fnac': 'bg-yellow-700 hover:bg-yellow-800',
+      'mediamarkt': 'bg-red-700 hover:bg-red-800',
+      'carrefour': 'bg-blue-700 hover:bg-blue-800',
+    };
+    
+    // Usar color mapeado o uno aleatorio pero consistente basado en el nombre
+    // Esto garantiza que cada tienda tendrá siempre el mismo color
+    if (colorMapping[tiendaSlug]) {
+      return colorMapping[tiendaSlug];
+    }
+    
+    // Generar un índice basado en el nombre de la tienda para elegir un color
+    const charSum = tiendaSlug.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    const colorIndex = charSum % colorOptions.length;
+    return colorOptions[colorIndex];
   };
 
   // Función para obtener todas las tiendas personalizadas
@@ -141,7 +176,7 @@ export default function OtrosItemsList() {
     
     return (
       <span 
-        className={`${color} text-white font-bold rounded-lg px-4 py-2 text-md inline-block w-full text-center shadow-sm transition-all duration-200 hover:shadow transform hover:scale-105`}
+        className={`${color} tienda-button rounded-lg px-4 py-2 text-md inline-block w-full text-center shadow-sm transition-all duration-200 hover:shadow transform hover:scale-105`}
       >
         {displayName}
       </span>
@@ -200,7 +235,7 @@ export default function OtrosItemsList() {
           return (
             <div key={tiendaSlug} className="mb-8 bg-white rounded-lg shadow-md p-4 transition-all duration-300 hover:shadow-lg">
               {/* Encabezado de la tienda */}
-              <Link href={href} className="block mb-3">
+              <Link href={href} className="block mb-3" style={{ textDecoration: 'none' }}>
                 {renderTiendaButton(tiendaSlug)}
               </Link>
               
