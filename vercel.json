@@ -4,10 +4,6 @@
       "source": "/(.*)",
       "headers": [
         {
-          "key": "Content-Type",
-          "value": "text/html; charset=utf-8"
-        },
-        {
           "key": "Cache-Control",
           "value": "public, max-age=0, must-revalidate"
         },
@@ -26,11 +22,50 @@
       ]
     },
     {
+      "source": "/_next/static/chunks/(.*).js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/_next/static/(.*).js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/_next/static/css/(.*).css",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/css; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/_next/data/(.*)",
       "headers": [
         {
           "key": "Content-Type",
-          "value": "application/json"
+          "value": "application/json; charset=utf-8"
         },
         {
           "key": "Cache-Control",
@@ -43,7 +78,7 @@
       "headers": [
         {
           "key": "Content-Type",
-          "value": "application/json"
+          "value": "application/json; charset=utf-8"
         },
         {
           "key": "Cache-Control",
