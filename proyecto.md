@@ -51,10 +51,12 @@
 <consideraciones_tecnicas_importantes>
 <configuracion_dominio_personalizado>
 - Para el correcto funcionamiento del dominio personalizado (lacompra.septi.es) se requiere una configuración específica de los MIME types.
-- Solución implementada: Se creó un archivo vercel.json con headers específicos para cada tipo de recurso, especialmente para scripts JavaScript.
-- Los archivos JavaScript se sirven explícitamente con Content-Type: application/javascript para evitar problemas de MIME type.
-- Esto soluciona el error: "Refused to execute script because its MIME type ('text/html') is not executable".
-- Componentes del servidor de React (RSC) requieren esta configuración correcta para funcionar en dominios personalizados.
+- Problema principal: Archivos JavaScript servidos con MIME type incorrecto ('text/html' en lugar de 'application/javascript').
+- Soluciones implementadas:
+  1. Middleware de Next.js (src/middleware.ts): Intercepta todas las peticiones y establece los headers correctos según el tipo de archivo.
+  2. Archivo vercel.json con headers específicos para cada tipo de recurso.
+- Las peticiones RSC (?_rsc=1ld0r) son parte normal del funcionamiento de React Server Components en Next.js 15.
+- Esta configuración garantiza que los archivos JavaScript se sirvan con Content-Type: application/javascript para evitar el error "Refused to execute script".
 </configuracion_dominio_personalizado>
 
 <rutas_api_nextjs_15>
