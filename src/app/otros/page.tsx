@@ -171,7 +171,7 @@ export default function OtrosPage() {
             tiendas.map((tienda) => (
               <Link 
                 key={tienda} 
-                href={`/super/${tienda}`}
+                href={`/super/otros-${tienda}`}
                 className="relative p-6 rounded-xl bg-white shadow-sm border border-neutral-200 block transition-all duration-200 hover:shadow-md hover:border-blue-200"
               >
                 <div className="flex justify-between items-center">

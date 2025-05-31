@@ -31,6 +31,7 @@ export default function SuperListPage() {
     const router = useRouter();
     const superSlug = params.super as string; // Get slug from URL
     const isCosas = superSlug === 'cosas-varias';
+    const isOtrosTienda = superSlug.startsWith('otros-');
     // Definir fuentes y objetivos permitidos para mover todos los artículos
     const ALLOWED_SOURCES_MOVE_ALL = ['mercadona','eroski','lidl','gadis','froiz','proximamente'];
     const MOVE_TARGETS = ['mercadona','eroski','lidl','gadis','froiz'];
@@ -493,8 +494,8 @@ const currentList = [...list];
                     autoComplete="off"
                     aria-label="Nuevo artículo"
                 />
-                {/* Autocomplete solo si no es cosas-variadas */}
-                {!isCosas && showSuggestions && (
+                {/* Autocomplete solo si no es cosas-variadas ni una tienda otros */}
+                {!isCosas && !isOtrosTienda && showSuggestions && (
                     <ul className="absolute left-0 right-0 z-50 bg-white border-0 rounded-xl shadow-xl mt-1 max-h-48 overflow-y-auto">
                         {suggestions.map((suggestion) => (
                             <li
