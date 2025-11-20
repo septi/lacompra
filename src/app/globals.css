@@ -105,6 +105,7 @@ html, body {
               linear-gradient(180deg, #f9fbff 0%, #f6f7f8 100%) !important;
   color: var(--foreground);
   font-family: "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-size: 18px;
 }
 
 /* Tipografías */
