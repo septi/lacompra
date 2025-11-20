@@ -20,7 +20,11 @@ export async function POST(request: NextRequest) {
         const cleanItem: ListItem = {
             id: itemData.id,
             nombre: itemData.nombre,
-            cantidad: itemData.cantidad
+            cantidad: itemData.cantidad,
+            comprado: itemData.comprado ?? false,
+            seccion: itemData.seccion ?? '',
+            link: itemData.link ?? '',
+            compradoAt: itemData.compradoAt ?? null,
         };
         
         // Convertir a JSON para almacenar en Redis

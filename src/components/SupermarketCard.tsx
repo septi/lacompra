@@ -3,26 +3,22 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 interface SupermarketCardProps {
-  name: string; // Display name (e.g., "Mercadona", "Otros")
-  slug: string; // URL slug (e.g., "mercadona", "otros")
+  name: string; // Display name (e.g., "Eroski", "Otros")
+  slug: string; // URL slug (e.g., "eroski", "otros")
 }
 
 // Mapeo de slugs a rutas de imágenes locales
 const supermarketLogos: { [key: string]: string } = {
-  mercadona: '/images/mercadona.jpg',
   eroski: '/images/eroski.png',
   gadis: '/images/gadis.png',
   lidl: '/images/lidl.png',
-  froiz: '/images/froiz.png',
 };
 
 // Mapping slugs to color variables
 const colorMap: Record<string, string> = {
-  mercadona: 'var(--mercadona)',
   eroski: 'var(--eroski)',
   lidl: 'var(--lidl)',
   gadis: 'var(--gadis)',
-  froiz: 'var(--froiz)',
   otros: 'var(--otros)',
   proximamente: 'var(--proximamente)',
 };
@@ -39,25 +35,27 @@ export default function SupermarketCard({ name, slug }: SupermarketCardProps) {
   return (
     <Link
       href={href}
-      className="card flex flex-col justify-center items-center p-4 bg-white hover:shadow-md transition-all duration-200"
-      style={{ borderTop: `3px solid ${color}` }}
+      className="card flex flex-col justify-between items-start p-3 sm:p-4 gap-3 transition-all"
+      style={{ borderColor: color }}
     >
-      {/* Mostrar la imagen solo si existe logo */}
-      {logoPath ? (
-        <div className="w-24 h-24 sm:w-28 sm:h-28 relative flex items-center justify-center my-2">
-          <img 
-            src={logoPath}
-            alt={name}
-            className="max-w-full max-h-full object-contain"
-            style={{ width: '100%', height: 'auto' }}
-          />
+      <div className="flex items-center gap-3 w-full">
+        {logoPath ? (
+          <div className="w-12 h-12 rounded-lg bg-[var(--surface-alt)] flex items-center justify-center overflow-hidden">
+            <img 
+              src={logoPath}
+              alt={name}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+        ) : (
+          <div className="w-12 h-12 rounded-lg bg-[var(--surface-alt)] flex items-center justify-center">
+            <span className="text-lg font-semibold" style={{ color }}>{name.charAt(0)}</span>
+          </div>
+        )}
+        <div className="flex flex-col">
+          <h2 className="text-base font-semibold text-neutral-900 leading-tight">{name}</h2>
         </div>
-      ) : (
-        <div className="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center bg-neutral-100 rounded-full mb-2">
-          <span className="text-2xl font-bold" style={{ color }}>{name.charAt(0)}</span>
-        </div>
-      )}
-      <h2 className="text-lg font-medium text-neutral-800 mt-2 text-center">{name}</h2>
+      </div>
     </Link>
   );
 }

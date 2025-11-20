@@ -6,6 +6,7 @@ export interface ListItem {
   comprado?: boolean;
   seccion?: string;
   link?: string;
+  compradoAt?: number | null;
 }
 
 export interface SortableItemProps {

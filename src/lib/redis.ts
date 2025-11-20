@@ -8,6 +8,7 @@ export interface ListItem {
   comprado?: boolean; // comprado flag
   seccion?: string;  // sección asignada
   link?: string; // link opcional
+  compradoAt?: number | null; // Marca temporal de compra
 }
 
 // --- Redis Client Initialization ---
@@ -32,6 +33,17 @@ export const redis = new Redis({
   url: redisUrl,
   token: redisToken,
 });
+
+const normalizeTimestamp = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
 
 /**
  * Limpia una lista en Redis, eliminando elementos inválidos.
@@ -104,7 +116,8 @@ export async function cleanList(listName: string): Promise<boolean> {
                     cantidad: Number(parsed.cantidad || 1),
                     comprado: parsed.comprado ?? false,
                     seccion: parsed.seccion ?? '',
-                    link: parsed.link ?? ''
+                    link: parsed.link ?? '',
+                    compradoAt: normalizeTimestamp(parsed.compradoAt),
                 });
             } catch (error) {
                 // Ignorar elementos que no se pueden procesar
@@ -196,7 +209,8 @@ export async function getSuperList(superSlug: string): Promise<ListItem[]> {
                 cantidad: parsed.cantidad ?? 1,
                 comprado: parsed.comprado ?? false,
                 seccion: parsed.seccion ?? '',
-                link: parsed.link ?? ''
+                link: parsed.link ?? '',
+                compradoAt: normalizeTimestamp(parsed.compradoAt),
             };
         });
     } catch (err) {
@@ -209,7 +223,16 @@ export async function setSuperList(superSlug: string, list: ListItem[]): Promise
     const key = getKey(superSlug);
     await redis.del(key);
     if (list.length > 0) {
-        await redis.rpush(key, ...list.map(i => JSON.stringify(i)));
+        const serialized = list.map(item => JSON.stringify({
+            id: String(item.id),
+            nombre: String(item.nombre),
+            cantidad: Number(item.cantidad || 1),
+            comprado: item.comprado ?? false,
+            seccion: item.seccion ?? '',
+            link: item.link ?? '',
+            compradoAt: normalizeTimestamp(item.compradoAt),
+        }));
+        await redis.rpush(key, ...serialized);
     }
 }
 
@@ -231,7 +254,8 @@ export async function addItem(superSlug: string, item: ListItem): Promise<boolea
       cantidad: Number(item.cantidad || 1),
       comprado: item.comprado ?? false,
       seccion: item.seccion ?? '',
-      link: item.link ?? ''
+      link: item.link ?? '',
+      compradoAt: normalizeTimestamp(item.compradoAt),
     };
     
     // Serializar correctamente a JSON
@@ -289,7 +313,8 @@ export async function updateItemByIndex(superSlug: string, index: number, item: 
             cantidad: Number(item.cantidad || 1),
             comprado: item.comprado ?? false,
             seccion: item.seccion ?? '',
-            link: item.link ?? ''
+            link: item.link ?? '',
+            compradoAt: normalizeTimestamp(item.compradoAt),
         };
         
         // Serializar correctamente a JSON
@@ -328,7 +353,8 @@ export async function replaceList(superSlug: string, items: ListItem[]): Promise
             cantidad: Number(item.cantidad || 1),
             comprado: item.comprado ?? false,
             seccion: item.seccion ?? '',
-            link: item.link ?? ''
+            link: item.link ?? '',
+            compradoAt: normalizeTimestamp(item.compradoAt),
         }));
         
         // Si el array está vacío, NO modificar la lista (protección anti-borrado)

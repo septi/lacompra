@@ -19,7 +19,7 @@ export default function SortableItem({ id, item, onUpdateItem, onDeleteItem, onM
 
   const [showActions, setShowActions] = useState(false);
   const [linkValue, setLinkValue] = useState<string>(item.link || '');
-  const canMove = ['mercadona','eroski','lidl','gadis','froiz','proximamente'].includes(superSlug);
+  const canMove = ['eroski','lidl','gadis','proximamente'].includes(superSlug);
   const containerRef = useRef<HTMLLIElement>(null);
 
   useEffect(() => {
@@ -36,9 +36,9 @@ export default function SortableItem({ id, item, onUpdateItem, onDeleteItem, onM
     <li
       ref={(node) => { setNodeRef(node); containerRef.current = node; }}
       style={style}
-      className="flex items-center px-2 py-1 my-1 bg-white rounded-md shadow-md transition-all duration-200 relative"
+      className="flex items-center px-3 py-2 my-1 bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-sm transition-all duration-200 relative"
     >
-      <label htmlFor={`item-${id}`} className="flex flex-grow items-center text-xl cursor-pointer">
+      <label htmlFor={`item-${id}`} className="flex flex-grow items-center text-base cursor-pointer text-neutral-900">
         <Checkbox
           id={`item-${id}`}
           checked={item.comprado}
@@ -94,15 +94,16 @@ export default function SortableItem({ id, item, onUpdateItem, onDeleteItem, onM
             <div className="flex items-center">
               <Button
                 onClick={() => onUpdateItem(item.id, { cantidad: Math.max(1, item.cantidad - 1) })}
-                className="px-2 py-1 bg-red-500 text-white rounded-full shadow-sm hover:shadow-md disabled:opacity-50 transition-all"
+                variant="outline"
+                className="px-2 py-1 text-neutral-900 rounded-lg shadow-none hover:bg-neutral-100 disabled:opacity-50 transition-all"
                 disabled={item.cantidad <= 1}
               >
                 -
               </Button>
-              <span className="mx-2 text-gray-700 font-medium">{item.cantidad}</span>
+              <span className="mx-2 text-gray-800 font-medium">{item.cantidad}</span>
               <Button
                 onClick={() => onUpdateItem(item.id, { cantidad: item.cantidad + 1 })}
-                className="px-2 py-1 bg-green-500 text-white rounded-full shadow-sm hover:shadow-md transition-all"
+                className="px-2 py-1 rounded-lg shadow-none"
               >
                 +
               </Button>
@@ -118,7 +119,7 @@ export default function SortableItem({ id, item, onUpdateItem, onDeleteItem, onM
                 className="mt-1 w-full"
               >
                 <option value="" disabled>Super</option>
-                {['mercadona','eroski','lidl','gadis','froiz']
+                {['eroski','lidl','gadis','proximamente']
                   .filter(s => s !== superSlug)
                   .map(slug => (
                     <option key={slug} value={slug}>{formatSuperName(slug)}</option>

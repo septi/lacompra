@@ -7,11 +7,9 @@ import Link from 'next/link';
 
 // Definir colores para los supermercados (mismos que en la página principal)
 const superColors: { [key: string]: string } = {
-  mercadona: 'bg-green-600',
   eroski: 'bg-red-600',
   lidl: 'bg-blue-700',
   gadis: 'bg-yellow-500',
-  froiz: 'bg-red-600',
   otros: 'bg-gray-500',
 };
 
@@ -37,7 +35,7 @@ export default function AllItemsList() {
   const [error, setError] = useState<string | null>(null);
 
   // Mostrar solo supermercados fijos seleccionados
-  const allowedSuperSlugs = ['mercadona','eroski','lidl','gadis','froiz'];
+  const allowedSuperSlugs = ['eroski','lidl','gadis'];
 
   // Función para obtener todos los elementos de todas las listas
   const fetchAllItems = async () => {
@@ -165,31 +163,28 @@ export default function AllItemsList() {
 
   if (error) {
     return (
-      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md mb-6 animate-fadeIn" role="alert">
-        <div className="flex items-center">
-          <svg className="h-6 w-6 text-red-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <span className="block font-medium">{error}</span>
-        </div>
+      <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 p-3 text-sm" role="alert">
+        {error}
       </div>
     );
   }
 
   return (
-    <div className="mt-8 mb-4">
-      <h2 className="cal-sans-regular text-2xl font-bold text-foreground mb-4">Todos los Artículos</h2>
-      <div className="max-w-3xl mx-auto grid grid-cols-2 gap-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {groupedItems.map(([slug, items]) => (
-          <div key={slug} className="mb-4">
+          <div key={slug} className="rounded-lg border border-[var(--border)] bg-[var(--surface-alt)] p-3">
             <Link href={`/super/${slug}`}> 
-              <h3 className="text-lg font-semibold text-foreground mb-2 cursor-pointer">{formatSuperName(slug)}</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-foreground">{formatSuperName(slug)}</h3>
+                <span className="text-xs text-[var(--muted)]">{items.length} items</span>
+              </div>
             </Link>
-            <ul className="space-y-1">
+            <ul className="space-y-1.5">
               {items.map(item => (
-                <li key={item.id} className="text-foreground overflow-hidden whitespace-nowrap truncate">
+                <li key={item.id} className="text-sm text-foreground overflow-hidden whitespace-nowrap truncate">
                   <Link href={`/super/${slug}`} className="block hover:underline overflow-hidden whitespace-nowrap truncate">
-                    {item.nombre} ({item.cantidad})
+                    {item.nombre} <span className="text-[var(--muted)]">({item.cantidad})</span>
                   </Link>
                 </li>
               ))}
@@ -198,8 +193,8 @@ export default function AllItemsList() {
         ))}
       </div>
       {/* Botón Edición predictivo */}
-      <div className="flex justify-center mt-6 mb-6">
-        <Link href="/editar-items" className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-md transition inline-block">
+      <div className="flex justify-center pt-2">
+        <Link href="/editar-items" className="px-4 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--muted)] hover:border-neutral-400 transition inline-flex items-center">
           Edición predictivo
         </Link>
       </div>

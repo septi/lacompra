@@ -131,7 +131,7 @@ La aplicación está configurada para usar siempre el tema claro mediante:
 - Tema Claro: colores distintivos por supermercado.
 - Iconos y Animaciones: Heroicons y animaciones sutiles.
 - Imágenes de Supermercados: logotipos sin fondo, excepto Otros.
-- Supermercados Soportados: Mercadona, Eroski, Gadis, Lidl, Froiz, Otros y Próximamente (sin icono).
+- Supermercados Soportados: Eroski, Gadis, Lidl, Otros, Próximamente (sin icono) y Cosas Varias.
 </interfaz_usuario>
 
 <color_palette>

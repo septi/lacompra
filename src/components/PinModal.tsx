@@ -27,21 +27,21 @@ export default function PinModal({ onPinVerified }: PinModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Introduce el PIN</h2>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+      <div className="bg-[var(--surface)] p-6 rounded-2xl shadow-md w-full max-w-sm border border-[var(--border)]">
+        <h2 className="text-xl font-semibold mb-4 text-center text-neutral-900">Introduce el PIN</h2>
         <form onSubmit={handleSubmit}>
           <Input
             type="password"
             value={pin}
             onChange={(e) => setPin(e.target.value)}
             maxLength={6}
-            className="mb-4 text-center text-lg tracking-widest font-medium"
+            className="mb-3 text-center text-lg tracking-widest font-medium"
             placeholder="******"
             autoFocus
             aria-label="PIN"
           />
-          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+          {error && <p className="text-red-500 text-sm mb-3 text-center">{error}</p>}
           <Button
             type="submit"
             className="w-full"

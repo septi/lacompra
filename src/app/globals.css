@@ -23,42 +23,29 @@
 
 
 :root {
-  /* Colores base */
-  --background: #ffffff;
-  --foreground: #171717;
-  
-  /* Paleta de colores principal */
-  --primary: #2563eb;
-  --primary-dark: #1d4ed8;
-  --primary-light: #3b82f6;
-  --primary-text: #ffffff;
-  
+  /* Base neutra y acentos */
+  --background: #f7f8fb;
+  --foreground: #0f172a;
+  --muted: #5c6474;
+  --border: #e5e7eb;
+  --surface: #ffffff;
+  --surface-alt: #f2f4f5;
+  --accent: #1f3b73;
+  --accent-soft: #233f7c;
+  --accent-text: #ffffff;
+
   /* Colores para supermercados */
-  --mercadona: #00906e;
-  --eroski: #e41e26;
-  --lidl: #0050aa;
-  --gadis: #ffc72c;
-  --froiz: #e41e26;
-  --otros: #64748b;
-  --proximamente: #9333ea;
+  --eroski: #e24a39;
+  --lidl: #1f4faf;
+  --gadis: #d9a21b;
+  --otros: #6b7280;
+  --proximamente: #7c3aed;
   
-  /* Colores neutrales */
-  --neutral-50: #f8fafc;
-  --neutral-100: #f1f5f9;
-  --neutral-200: #e2e8f0;
-  --neutral-300: #cbd5e1;
-  --neutral-400: #94a3b8;
-  --neutral-500: #64748b;
-  --neutral-600: #475569;
-  --neutral-700: #334155;
-  --neutral-800: #1e293b;
-  --neutral-900: #0f172a;
-  
-  /* Sombras suaves */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  /* Sombras y bordes ligeros */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 10px 40px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 18px 60px rgba(15, 23, 42, 0.12);
 }
 
 @theme inline {
@@ -70,35 +57,37 @@
 
 @layer base {
   button {
-    @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium shadow-sm transition-colors;
-    background-color: var(--primary);
-    color: white;
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium transition-colors;
+    background-color: transparent;
+    color: inherit;
+    border: 1px solid transparent;
   }
   button:hover {
-    background-color: var(--primary-dark);
+    background-color: var(--surface-alt);
   }
   button:focus {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
   button.outline {
-    @apply bg-transparent border border-neutral-300 text-neutral-700 hover:bg-neutral-100;
+    @apply bg-transparent text-neutral-700 hover:bg-neutral-100;
+    border-color: var(--border);
   }
   a.button {
-    @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium transition-colors;
-    background-color: var(--primary);
-    color: white;
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium transition-colors;
+    background-color: var(--accent);
+    color: var(--accent-text);
   }
   a.button:hover {
-    background-color: var(--primary-dark);
+    background-color: var(--accent-soft);
   }
   input, textarea, select {
     @apply w-full rounded-lg px-3 py-2 transition-colors;
-    border: 1px solid var(--neutral-300);
-    background-color: white;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
   }
   input:focus, textarea:focus, select:focus {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 }
@@ -112,7 +101,8 @@ option {
 }
 
 html, body {
-  background-color: #e6f2ff !important; /* Azul claro más notorio */
+  background: radial-gradient(140% 140% at 20% 10%, #eef2ff 0%, rgba(238, 242, 255, 0) 40%), 
+              linear-gradient(180deg, #f9fbff 0%, #f6f7f8 100%) !important;
   color: var(--foreground);
   font-family: "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 }
@@ -139,15 +129,17 @@ p {
 
 /* Elementos de interfaz */
 .card {
-  background-color: white;
-  border-radius: 0.5rem;
+  background-color: var(--surface);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+  border-color: #d1d5db;
 }
 
 /* Utilidades */

@@ -15,7 +15,7 @@ function extractSuperSlugFromURL(url: string): string {
     // Convertir la URL a un objeto URL para manejarla mejor
     const urlObj = new URL(url);
     
-    // La ruta será algo como /api/list/mercadona o /api/list/eroski
+    // La ruta será algo como /api/list/eroski o /api/list/gadis
     const pathname = urlObj.pathname;
     const pathParts = pathname.split('/');
     
@@ -90,8 +90,9 @@ export async function POST(request: NextRequest) {
       nombre: String(nombre), // Asegurar que sea string
       cantidad: Number(cantidad), // Asegurar que sea número
       comprado: false, // default comprado flag
-      seccion: String(seccion) // sección proveniente del cliente
-      ,link: String(link)
+      seccion: String(seccion), // sección proveniente del cliente
+      link: String(link),
+      compradoAt: null,
     };
 
     // Use the new addItem function
@@ -210,12 +211,13 @@ export async function PATCH(request: NextRequest) {
     // Option 3: Updating the 'comprado' flag
     if (payload.itemId && payload.comprado !== undefined) {
       const { itemId, comprado } = payload;
+      const timestamp = comprado ? Date.now() : null;
       const currentList = await getSuperList(superSlug);
       let itemFound = false;
       const updatedList = currentList.map(item => {
         if (item.id === itemId) {
           itemFound = true;
-          return { ...item, comprado: Boolean(comprado) };
+          return { ...item, comprado: Boolean(comprado), compradoAt: timestamp };
         }
         return item;
       });
