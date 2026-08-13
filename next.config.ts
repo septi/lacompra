@@ -1,22 +1,18 @@
-const withPWA = require('next-pwa')({
-  dest: 'public',
+import withSerwistInit from '@serwist/next';
+import type { NextConfig } from 'next';
+
+const withSerwist = withSerwistInit({
+  swSrc: 'src/app/sw.ts',
+  swDest: 'public/sw.js',
   register: true,
-  skipWaiting: true,
   disable: process.env.NODE_ENV === 'development'
 });
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+const nextConfig: NextConfig = {
+  agentRules: false,
   reactStrictMode: true,
   devIndicators: false,
-
-  // Ensure proper handling of React Server Components
-  experimental: {
-    serverActions: true,
-  },
+  turbopack: {},
 };
 
-module.exports = withPWA(nextConfig);
+export default withSerwist(nextConfig);
